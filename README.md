@@ -1,0 +1,2 @@
+# Toker.js
+JWT management
