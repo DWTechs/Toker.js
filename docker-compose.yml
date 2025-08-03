@@ -1,0 +1,18 @@
+version: "3.8"
+services:
+
+  toker:
+    build: ./
+    container_name: toker
+    volumes:
+      - ./:/usr/src/app
+      - toker_node_modules:/usr/src/app/node_modules
+
+
+volumes:
+  toker_node_modules:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/node_modules

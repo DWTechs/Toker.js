@@ -1,0 +1,49 @@
+{
+  "name": "@dwtechs/toker",
+  "version": "0.1.0",
+  "description": "Open source JWT management library for Node.js.",
+  "keywords": [
+    "jwt",
+    "token",
+    "bearer",
+    "authentication"
+  ],
+  "homepage": "https://github.com/DWTechs/Toker.js",
+  "main": "dist/toker",
+  "types": "dist/toker",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DWTechs/Toker.js"
+  },
+  "bugs": {
+    "url": "https://github.com/DWTechs/Toker.js/issues",
+    "email": ""
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Ludovic Cluber",
+    "email": "http://www.lcluber.com/contact",
+    "url": "http://www.lcluber.com"
+  },
+  "contributors": [],
+  "scripts": {
+    "start": "",
+    "prebuild": "npm install",
+    "build": "node ./scripts/clear && tsc && npm run rollup && node ./scripts/copy && npm run test",
+    "rollup": "rollup --config rollup.config.mjs",
+    "test": "jest --coverage"
+  },
+  "files": [
+    "dist/"
+  ],
+  "dependencies": {
+    "@dwtechs/checkard": "3.2.3"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "7.26.0",
+    "@types/node": "24.1.0",
+    "jest": "29.7.0",
+    "rollup": "4.24.0",
+    "typescript": "5.6.3"
+  }
+}
