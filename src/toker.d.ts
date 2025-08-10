@@ -34,12 +34,12 @@ export class InvalidTokenError extends TokerError {
   readonly statusCode: number;
 }
 
-export class TokenExpiredError extends TokerError {
+export class ExpiredTokenError extends TokerError {
   readonly code: string;
   readonly statusCode: number;
 }
 
-export class TokenNotActiveError extends TokerError {
+export class InactiveTokenError extends TokerError {
   readonly code: string;
   readonly statusCode: number;
 }
@@ -69,7 +69,7 @@ export class InvalidDurationError extends TokerError {
   readonly statusCode: number;
 }
 
-export class SecretDecodingError extends TokerError {
+export class InvalidBase64Secret extends TokerError {
   readonly code: string;
   readonly statusCode: number;
 }

@@ -59,17 +59,17 @@ class InvalidTokenError extends TokerError {
         this.statusCode = 401;
     }
 }
-class TokenExpiredError extends TokerError {
+class ExpiredTokenError extends TokerError {
     constructor(message = `${TOKER_PREFIX}JWT token has expired`) {
         super(message);
-        this.code = "TOKEN_EXPIRED";
+        this.code = "EXPIRED_TOKEN";
         this.statusCode = 401;
     }
 }
-class TokenNotActiveError extends TokerError {
+class InactiveTokenError extends TokerError {
     constructor(message = `${TOKER_PREFIX}JWT token cannot be used yet (nbf claim)`) {
         super(message);
-        this.code = "TOKEN_NOT_ACTIVE";
+        this.code = "INACTIVE_TOKEN";
         this.statusCode = 401;
     }
 }
@@ -101,10 +101,10 @@ class InvalidDurationError extends TokerError {
         this.statusCode = 400;
     }
 }
-class SecretDecodingError extends TokerError {
-    constructor(message = `${TOKER_PREFIX}could not decode the secret`) {
+class InvalidBase64Secret extends TokerError {
+    constructor(message = `${TOKER_PREFIX}could not decode the base64 secret`) {
         super(message);
-        this.code = "SECRET_DECODING_ERROR";
+        this.code = "INVALID_BASE64_SECRET";
         this.statusCode = 500;
     }
 }
@@ -125,7 +125,7 @@ function sign(iss, duration, type, b64Keys) {
     const b64Secret = b64Keys[header.kid];
     const secret = b64Decode(b64Secret, true);
     if (!secret)
-        throw new SecretDecodingError();
+        throw new InvalidBase64Secret();
     const iat = Math.floor(Date.now() / 1000);
     const nbf = iat + 1;
     const exp = duration > 60 ? iat + duration : iat + 60 * 15;
@@ -159,12 +159,12 @@ function verify(token, b64Keys, ignoreExpiration = false) {
         throw new InvalidTokenError();
     const now = Math.floor(Date.now() / 1000);
     if (payload.nbf && payload.nbf > now)
-        throw new TokenNotActiveError();
+        throw new InactiveTokenError();
     if (!ignoreExpiration && payload.exp < now)
-        throw new TokenExpiredError();
+        throw new ExpiredTokenError();
     const b64Secret = b64Keys[header.kid];
     if (!isBase64(b64Secret, true))
-        throw new SecretDecodingError();
+        throw new InvalidBase64Secret();
     const secret = b64Decode(b64Secret);
     const expectedSignature = hash(`${b64Header}.${b64Payload}`, secret);
     const safeA = Buffer.from(expectedSignature);
@@ -187,4 +187,4 @@ function randomPick(array) {
     return Math.floor(Math.random() * array.length);
 }
 
-export { InvalidBearerFormatError, InvalidDurationError, InvalidIssuerError, InvalidSecretsError, InvalidSignatureError, InvalidTokenError, MissingAuthorizationError, SecretDecodingError, TokenExpiredError, TokenNotActiveError, TokerError, parseBearer, sign, verify };
+export { ExpiredTokenError, InactiveTokenError, InvalidBase64Secret, InvalidBearerFormatError, InvalidDurationError, InvalidIssuerError, InvalidSecretsError, InvalidSignatureError, InvalidTokenError, MissingAuthorizationError, TokerError, parseBearer, sign, verify };

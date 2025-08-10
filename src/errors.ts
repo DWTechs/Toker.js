@@ -105,15 +105,15 @@ export class InvalidTokenError extends TokerError {
  * try {
  *   verify(token, secrets, false); // Don't ignore expiration
  * } catch (error) {
- *   if (error instanceof TokenExpiredError) {
+ *   if (error instanceof ExpiredTokenError) {
  *     // Handle expired token - typically 401 Unauthorized
  *     console.log(error.message); // "JWT token has expired"
  *   }
  * }
  * ```
  */
-export class TokenExpiredError extends TokerError {
-  readonly code = "TOKEN_EXPIRED";
+export class ExpiredTokenError extends TokerError {
+  readonly code = "EXPIRED_TOKEN";
   readonly statusCode = 401;
 
   constructor(message = `${TOKER_PREFIX}JWT token has expired`) {
@@ -129,15 +129,15 @@ export class TokenExpiredError extends TokerError {
  * try {
  *   verify(token, secrets);
  * } catch (error) {
- *   if (error instanceof TokenNotActiveError) {
+ *   if (error instanceof InactiveTokenError) {
  *     // Handle token not yet active - typically 401 Unauthorized
  *     console.log(error.message); // "JWT token cannot be used yet (nbf claim)"
  *   }
  * }
  * ```
  */
-export class TokenNotActiveError extends TokerError {
-  readonly code = "TOKEN_NOT_ACTIVE";
+export class InactiveTokenError extends TokerError {
+  readonly code = "INACTIVE_TOKEN";
   readonly statusCode = 401;
 
   constructor(message = `${TOKER_PREFIX}JWT token cannot be used yet (nbf claim)`) {
@@ -246,14 +246,14 @@ export class InvalidDurationError extends TokerError {
  * try {
  *   sign("user123", 3600, "access", ["invalid-base64"]);
  * } catch (error) {
- *   if (error instanceof SecretDecodingError) {
+ *   if (error instanceof InvalidBase64Secret) {
  *     console.log(error.message); // "could not decode the secret"
  *   }
  * }
  * ```
  */
-export class SecretDecodingError extends TokerError {
-  readonly code = "SECRET_DECODING_ERROR";
+export class InvalidBase64Secret extends TokerError {
+  readonly code = "INVALID_BASE64_SECRET";
   readonly statusCode = 500;
 
   constructor(message = `${TOKER_PREFIX}could not decode the base64 secret`) {

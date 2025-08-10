@@ -1,4 +1,4 @@
-import { parseBearer, BEARER_TOKEN_ERROR_MESSAGE, MISSING_AUTHORIZATION_ERROR_MESSAGE } from "../dist/toker.js";
+import { parseBearer, InvalidBearerFormatError, MissingAuthorizationError } from "../dist/toker.js";
 
 describe("parseBearer", () => {
   
@@ -54,19 +54,19 @@ describe("parseBearer", () => {
     test("throws specific error for undefined authorization", () => {
       expect(() => {
         parseBearer(undefined);
-      }).toThrow(MISSING_AUTHORIZATION_ERROR_MESSAGE);
+      }).toThrow(MissingAuthorizationError);
     });
 
     test("throws specific error for null authorization", () => {
       expect(() => {
         parseBearer(null);
-      }).toThrow(MISSING_AUTHORIZATION_ERROR_MESSAGE);
+      }).toThrow(MissingAuthorizationError);
     });
 
     test("throws specific error for empty authorization", () => {
       expect(() => {
         parseBearer("");
-      }).toThrow(MISSING_AUTHORIZATION_ERROR_MESSAGE);
+      }).toThrow(MissingAuthorizationError);
     });
   });
 
@@ -75,61 +75,61 @@ describe("parseBearer", () => {
     test("throws error for Bearer without token", () => {
       expect(() => {
         parseBearer("Bearer");
-      }).toThrow(BEARER_TOKEN_ERROR_MESSAGE);
+      }).toThrow(InvalidBearerFormatError);
     });
 
     test("throws error for Bearer with only space", () => {
       expect(() => {
         parseBearer("Bearer ");
-      }).toThrow(BEARER_TOKEN_ERROR_MESSAGE);
+      }).toThrow(InvalidBearerFormatError);
     });
 
     test("throws error for Bearer with multiple spaces but no token", () => {
       expect(() => {
         parseBearer("Bearer   ");
-      }).toThrow(BEARER_TOKEN_ERROR_MESSAGE);
+      }).toThrow(InvalidBearerFormatError);
     });
 
     test("throws error for Basic authentication", () => {
       expect(() => {
         parseBearer("Basic dXNlcjpwYXNzd29yZA==");
-      }).toThrow(BEARER_TOKEN_ERROR_MESSAGE);
+      }).toThrow(InvalidBearerFormatError);
     });
 
     test("throws error for lowercase bearer", () => {
       expect(() => {
         parseBearer("bearer sometoken123");
-      }).toThrow(BEARER_TOKEN_ERROR_MESSAGE);
+      }).toThrow(InvalidBearerFormatError);
     });
 
     test("throws error for uppercase BEARER", () => {
       expect(() => {
         parseBearer("BEARER sometoken123");
-      }).toThrow(BEARER_TOKEN_ERROR_MESSAGE);
+      }).toThrow(InvalidBearerFormatError);
     });
 
     test("throws error for missing Bearer prefix", () => {
       expect(() => {
         parseBearer("sometoken123");
-      }).toThrow(BEARER_TOKEN_ERROR_MESSAGE);
+      }).toThrow(InvalidBearerFormatError);
     });
 
     test("throws error for malformed header with Bearer in wrong position", () => {
       expect(() => {
         parseBearer("Token Bearer sometoken123");
-      }).toThrow(BEARER_TOKEN_ERROR_MESSAGE);
+      }).toThrow(InvalidBearerFormatError);
     });
 
     test("throws error for Bearer with tab character", () => {
       expect(() => {
         parseBearer("Bearer\tsometoken");
-      }).toThrow(BEARER_TOKEN_ERROR_MESSAGE);
+      }).toThrow(InvalidBearerFormatError);
     });
 
     test("throws error for Bearer with newline", () => {
       expect(() => {
         parseBearer("Bearer\nsometoken");
-      }).toThrow(BEARER_TOKEN_ERROR_MESSAGE);
+      }).toThrow(InvalidBearerFormatError);
     });
   });
 

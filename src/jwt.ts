@@ -20,10 +20,10 @@ import {
   InvalidIssuerError,
   InvalidSecretsError,
   InvalidDurationError,
-  SecretDecodingError,
+  InvalidBase64Secret,
   InvalidTokenError,
-  TokenExpiredError,
-  TokenNotActiveError,
+  ExpiredTokenError,
+  InactiveTokenError,
   InvalidSignatureError
 } from "./errors.js";
 import { Buffer } from "buffer";
@@ -45,13 +45,13 @@ const header: Header = {
  * @throws {InvalidIssuerError} Throws when `iss` is not a string or a number - HTTP 400
  * @throws {InvalidSecretsError} Throws when `b64Keys` is not an array or is empty - HTTP 500
  * @throws {InvalidDurationError} Throws when `duration` is not a positive number - HTTP 400
- * @throws {SecretDecodingError} Throws when the secret cannot be decoded from base64 - HTTP 500
+ * @throws {InvalidBase64Secret} Throws when the secret cannot be decoded from base64 - HTTP 500
  * 
  * // Examples that throw specific errors:
  * sign(null, 3600, "access", secrets); // Throws InvalidIssuerError
  * sign("user123", 3600, "access", []); // Throws InvalidSecretsError
  * sign("user123", -1, "access", secrets); // Throws InvalidDurationError
- * sign("user123", 3600, "access", ["invalid-base64!"]); // Throws SecretDecodingError
+ * sign("user123", 3600, "access", ["invalid-base64!"]); // Throws InvalidBase64Secret
  * ```
  */
 function sign(
@@ -76,7 +76,7 @@ function sign(
 
 	const secret = b64Decode(b64Secret, true);
 	if (!secret)
-    throw new SecretDecodingError();
+    throw new InvalidBase64Secret();
 
 	const iat = Math.floor(Date.now() / 1000); // Current time in seconds
 	const nbf = iat + 1;
@@ -100,18 +100,18 @@ function sign(
  * @returns {Payload} The decoded payload of the JWT token.
  * @throws {InvalidTokenError} Throws when the token is malformed, has invalid structure, algorithm, or type - HTTP 401
  * @throws {InvalidSecretsError} Throws when b64Keys is not an array or is empty - HTTP 500
- * @throws {TokenNotActiveError} Throws when the token cannot be used yet (nbf claim) - HTTP 401
- * @throws {TokenExpiredError} Throws when the token has expired (exp claim) - HTTP 401
- * @throws {SecretDecodingError} Throws when the secret is not valid base64 encoded - HTTP 500
+ * @throws {InactiveTokenError} Throws when the token cannot be used yet (nbf claim) - HTTP 401
+ * @throws {ExpiredTokenError} Throws when the token has expired (exp claim) - HTTP 401
+ * @throws {InvalidBase64Secret} Throws when the secret is not valid base64 encoded - HTTP 500
  * @throws {InvalidSignatureError} Throws when the token signature is invalid - HTTP 401
  * 
  * // Examples that throw specific errors:
  * verify("invalid.token", secrets); // Throws InvalidTokenError
  * verify(validToken, []); // Throws InvalidSecretsError
- * verify(expiredToken, secrets); // Throws TokenExpiredError
- * verify(futureToken, secrets); // Throws TokenNotActiveError
+ * verify(expiredToken, secrets); // Throws ExpiredTokenError
+ * verify(futureToken, secrets); // Throws InactiveTokenError
  * verify(tamperedToken, secrets); // Throws InvalidSignatureError
- * verify(validToken, ["invalid-base64!"]); // Throws SecretDecodingError
+ * verify(validToken, ["invalid-base64!"]); // Throws InvalidBase64Secret
  * ```
  */
 function verify(token: string, b64Keys: string[], ignoreExpiration = false): Payload {
@@ -153,15 +153,15 @@ function verify(token: string, b64Keys: string[], ignoreExpiration = false): Pay
 
 	// Validate "nbf" claim
 	if (payload.nbf && payload.nbf > now)
-    throw new TokenNotActiveError();
+    throw new InactiveTokenError();
 
 	// validate the "exp" claim
 	if (!ignoreExpiration && payload.exp < now)
-    throw new TokenExpiredError();
+    throw new ExpiredTokenError();
 
 	const b64Secret = b64Keys[header.kid];
 	if (!isBase64(b64Secret, true))
-    throw new SecretDecodingError();
+    throw new InvalidBase64Secret();
 
 	const secret = b64Decode(b64Secret);
 

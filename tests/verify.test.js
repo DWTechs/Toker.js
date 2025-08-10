@@ -1,4 +1,5 @@
-const { verify, sign } = require("../dist/toker.js");
+import { verify, sign, InvalidTokenError, InactiveTokenError, ExpiredTokenError, InvalidSignatureError } from "../dist/toker.js";
+import { HashLengthMismatchError } from "@dwtechs/hashitaka";
 // Mock data
 const expiredToken = 
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6MX0.eyJpc3MiOiJ1c2VyMTIzIiwiaWF0IjoxNzQwNjA1NjUyLCJuYmYiOjE3NDA2MDU2NTMsImV4cCI6MTc0MDYwOTI1MiwidHlwIjoiYWNjZXNzIn0.xpEKqwDu7EOjkYfyZHxCOaikcKzU3zX5mMPu5Can7FU";
@@ -13,57 +14,72 @@ const b64Secrets = [
   '77-977-9dxlAaDLXv--_ve-_vX3vv73vv73vv70-AxnbuDBAKO-_ve-_vQMGWO-_vWrvv73vv70',
   'YS1zdHJpbmctc2VjcmV0LWF0LWxlYXN0LTI1Ni1iaXRzLWxvbmc'
 ];
+const otherB64Secrets = [
+  '78-977-9dxlAaDLXv--_ve-_vX3vv73vv73vv70-AxnbuDBAKO-_ve-_vQMGWO-_vWrvv73vv70',
+  'YR1zdHJpbmctc2VjcmV0LWF0LWxlYXN0LTI1Ni1iaXRzLWxvbmc'
+];
 const validToken = sign("user123", 3600, "access", b64Secrets);
-const validTokenWithBadLength = sign("user123", 3600, "access", b64Secrets);
+const invalidTokenSecrets = sign("user123", 3600, "access", otherB64Secrets);
 
 function wait(duration = 1000) {
 	return new Promise((resolve) => setTimeout(resolve, duration));
 }
 
 describe("verify", () => {
+
 	it("should throw error for a token with invalid segments", () => {
-		expect(() => { verify("invalid.token", b64Secrets)}).toThrow();
+		expect(() => { verify("invalid.token", b64Secrets)}).toThrow(InvalidTokenError);
 	});
 
 	it("should throw error for a token with invalid header", () => {
-		expect(() => { verify(invalidToken, b64Secrets)}).toThrow();
+		expect(() => { verify(invalidToken, b64Secrets)}).toThrow(InvalidTokenError);
 	});
 
 	it("should throw error for a token with invalid payload", () => {
-		expect(() => { verify("valid.token.invalidPayload", b64Secrets)}).toThrow();
+		expect(() => { verify("valid.token.invalidPayload", b64Secrets)}).toThrow(InvalidTokenError);
 	});
 
 	it("should throw error for a token with invalid algorithm", () => {
-		expect(() => { verify(invalidAlgToken, b64Secrets)}).toThrow();
+		expect(() => { verify(invalidAlgToken, b64Secrets)}).toThrow(InvalidTokenError);
 	});
 
 	it("should throw error for a token with invalid typ", () => {
-		expect(() => { verify(invalidTypToken, b64Secrets)}).toThrow();
+		expect(() => { verify(invalidTypToken, b64Secrets)}).toThrow(InvalidTokenError);
 	});
 
 	it("should throw error for a token with invalid kid", () => {
 		const invalidKidToken = "invalidKid.token.signature";
-		expect(() => { verify(invalidKidToken, b64Secrets)}).toThrow();
+		expect(() => { verify(invalidKidToken, b64Secrets)}).toThrow(InvalidTokenError);
 	});
 
 	it("should throw error for a token with nbf claim in the future", () => {
-		expect(() => { verify(validToken, b64Secrets)}).toThrow();
+		expect(() => { verify(validToken, b64Secrets)}).toThrow(InactiveTokenError);
 	});
 
 	it("should throw error for a token with exp claim in the past", () => {
-		expect(() => { verify(expiredToken, b64Secrets)}).toThrow();
+		expect(() => { verify(expiredToken, b64Secrets)}).toThrow(ExpiredTokenError);
 	});
 
-  it("should throw error when secrets don't match", () => {
-		expect(() => {verify(TokenWithBadSecret, b64Secrets, true)}).toThrow();
+  	it("should throw error when secrets don't match with different secret size", () => {
+		expect(() => {verify(TokenWithBadSecret, b64Secrets, true)}).toThrow(HashLengthMismatchError);
 	});
 
-	it("should throw error when secrets don't have the same size", () => {
-		expect(() => {verify(validTokenWithBadLength, b64Secrets, true)}).toThrow();
+	it("should throw error when secrets don't match", () => {
+		expect(() => {verify(invalidTokenSecrets, b64Secrets, true)}).toThrow(HashLengthMismatchError);
 	});
 
-  it("should return the decoded token with exp claim in the past and ignoreExpiration = true", () => {
-    const result = verify(expiredToken, b64Secrets, true);
+	it("should throw error when signature does not match (wrong secret)", async () => {
+		await wait()
+		// Use a valid token but verify with a different secret array
+		const wrongSecrets = [
+			'dGhpcy1pcy1ub3QtdGhlLXJpZ2h0LXNlY3JldA',
+			'YW5vdGhlci1mYWtlLXNlY3JldC1mb3ItdGVzdA'
+		];
+		expect(() => {verify(validToken, wrongSecrets, true)}).toThrow(InvalidSignatureError);
+	});
+
+  	it("should return the decoded token with exp claim in the past and ignoreExpiration = true", () => {
+    	const result = verify(expiredToken, b64Secrets, true);
 		expect(result).toBeInstanceOf(Object);
 	});
 

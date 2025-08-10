@@ -1,5 +1,5 @@
-import { sign } from "../dist/toker.js";
-import { rndB64Secret } from "@dwtechs/hashitaka";
+import { sign, InvalidIssuerError, InvalidSecretsError, InvalidDurationError, InvalidBase64Secret } from "../dist/toker.js";
+import { rndB64Secret, InvalidStringError } from "@dwtechs/hashitaka";
 import { isBase64, b64Encode } from "@dwtechs/checkard";
 
 describe("encodeBase64", () => {
@@ -62,17 +62,18 @@ describe("encodeBase64", () => {
 		expect(typeof token).toBe("string");
 	});
 
-	test("Throw error with an empty secrets array", () => {
-		expect(() => {sign("user123", 3600, "access", [])}).toThrow();
-	});
 
-	test("Throw error with a negative duration", () => {
-		expect(() => {sign("user123", -3600, "access", secrets)}).toThrow()
-	});
-
-	test("Throw error if no issuer is provided", () => {
-		expect(() => {sign("", 3600, "access", secrets)}).toThrow();
-	});
+		test("throws the correct errors for invalid input", () => {
+			// Empty secrets array
+			expect(() => sign("user123", 3600, "access", [])).toThrow(InvalidSecretsError);
+			// Negative duration
+			expect(() => sign("user123", -3600, "access", secrets)).toThrow(InvalidDurationError);
+			// No issuer
+			expect(() => sign("", 3600, "access", secrets)).toThrow(InvalidIssuerError);
+			// Invalid base64 secret (simulate by passing a non-base64 string)
+			const badSecrets = [""];
+			expect(() => sign("user123", 3600, "access", badSecrets)).toThrow(InvalidStringError);
+		});
 
 	test("ensures the signature is Base64 URL-safe encoded", () => {
 		const token = sign("user123", 3600, "access", secrets);

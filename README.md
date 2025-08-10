@@ -236,13 +236,13 @@ TokerError (abstract base class)
 ├── MissingAuthorizationError
 ├── InvalidBearerFormatError
 ├── InvalidTokenError
-├── TokenExpiredError
-├── TokenNotActiveError
+├── ExpiredTokenError
+├── InactiveTokenError
 ├── InvalidSignatureError
 ├── InvalidIssuerError
 ├── InvalidSecretsError
 ├── InvalidDurationError
-├── SecretDecodingError
+├── InvalidBase64Secret
 ```
 
 ### Common Properties
@@ -286,13 +286,13 @@ try {
 | MissingAuthorizationError | MISSING_AUTHORIZATION | 401 | Authorization header is missing |
 | InvalidBearerFormatError | INVALID_BEARER_FORMAT | 401 | Authorization header must be in the format 'Bearer <token>' |
 | InvalidTokenError | INVALID_TOKEN | 401 | Invalid or malformed JWT token |
-| TokenExpiredError | TOKEN_EXPIRED | 401 | JWT token has expired |
-| TokenNotActiveError | TOKEN_NOT_ACTIVE | 401 | JWT token cannot be used yet (nbf claim) |
+| ExpiredTokenError | EXPIRED_TOKEN_ | 401 | JWT token has expired |
+| InactiveTokenError | INACTIVE_TOKEN | 401 | JWT token cannot be used yet (nbf claim) |
 | InvalidSignatureError | INVALID_SIGNATURE | 401 | JWT token signature is invalid |
 | InvalidIssuerError | INVALID_ISSUER | 400 | iss must be a string or a number |
 | InvalidSecretsError | INVALID_SECRETS | 500 | b64Keys must be an array |
 | InvalidDurationError | INVALID_DURATION | 400 | duration must be a positive number |
-| SecretDecodingError | SECRET_DECODING_ERROR | 500 | could not decode the base64 secret |
+| InvalidBase64Secret | INVALID_BASE64_SECRET | 500 | could not decode the base64 secret |
 
 ## Express.js
 

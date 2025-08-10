@@ -5,12 +5,12 @@ export {
           MissingAuthorizationError,
           InvalidBearerFormatError,
           InvalidTokenError,
-          TokenExpiredError,
-          TokenNotActiveError,
+          ExpiredTokenError,
+          InactiveTokenError,
           InvalidSignatureError,
           // MissingClaimsError,
           InvalidIssuerError,
           InvalidSecretsError,
           InvalidDurationError,
-          SecretDecodingError
+          InvalidBase64Secret
         } from './errors';
