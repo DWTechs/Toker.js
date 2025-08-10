@@ -3,7 +3,6 @@
 [![npm version](https://badge.fury.io/js/%40dwtechs%2Ftoker.svg)](https://www.npmjs.com/package/@dwtechs/toker)
 [![last version release date](https://img.shields.io/github/release-date/DWTechs/Toker.js)](https://www.npmjs.com/package/@dwtechs/toker)
 ![Jest:coverage](https://img.shields.io/badge/Jest:coverage-100%25-brightgreen.svg)
-[![minified size](https://img.shields.io/bundlephobia/min/@dwtechs/toker?color=brightgreen)](https://www.npmjs.com/package/@dwtechs/toker)
 
 - [Synopsis](#synopsis)
 - [Support](#support)
@@ -154,7 +153,7 @@ function sign( iss: number | string,
                duration: number, 
                type: Type,
                b64Keys: string[]
-             ): string;
+             ): string {}
 
 /**
  * Verifies a JWT token using the provided base64-encoded secrets.
@@ -182,7 +181,7 @@ function sign( iss: number | string,
 function verify( token: string, 
                  b64Keys: string[],
                  ignoreExpiration = false
-               ): Payload;
+               ): Payload {}
 
 
 /**
@@ -219,7 +218,7 @@ function verify( token: string,
  * ```
  * 
  */
-function parseBearer(authorization: string | undefined): string;
+function parseBearer(authorization: string | undefined): string {}
 
 ```
 

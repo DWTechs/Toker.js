@@ -238,6 +238,4 @@ export {
   sign, 
   verify,
   parseBearer,
-  MissingAuthorizationError,
-  InvalidBearerFormatError,
 };
