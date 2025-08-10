@@ -40,20 +40,18 @@ The library uses node:crypto.
 ## Installation
 
 ```bash
-$ npm i @dwtechs/token
+$ npm i @dwtechs/toker
 ```
 
 
 ## Usage
 
 
-### ES6 / TypeScript
-
 Example of use with Express.js using ES6 module format
 
 ```javascript
 
-import { compare, randomPwd, encrypt, sign, verify } from "@dwtechs/token";
+import { compare, randomPwd, encrypt, sign, verify } from "@dwtechs/toker";
 
 const { ACCESS_TOKEN_DURATION, REFRESH_TOKEN_DURATION, TOKEN_SECRET } = process.env;
 
@@ -224,12 +222,12 @@ function parseBearer(authorization: string | undefined): string {}
 
 ## Error Handling
 
-Passken uses a structured error system that helps you identify and handle specific error cases. All errors extend from a base `TokenError` class.
+Toker uses a structured error system that helps you identify and handle specific error cases. All errors extend from a base `TokerError` class.
 
 ### Error Classes Hierarchy
 
 ```
-TokenError (abstract base class)
+TokerError (abstract base class)
 ├── MissingAuthorizationError
 ├── InvalidBearerFormatError
 ├── InvalidTokenError
