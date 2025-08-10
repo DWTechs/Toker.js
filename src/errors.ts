@@ -256,7 +256,7 @@ export class SecretDecodingError extends TokerError {
   readonly code = "SECRET_DECODING_ERROR";
   readonly statusCode = 500;
 
-  constructor(message = `${TOKER_PREFIX}could not decode the secret`) {
+  constructor(message = `${TOKER_PREFIX}could not decode the base64 secret`) {
     super(message);
   }
 }
