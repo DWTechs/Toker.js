@@ -292,7 +292,7 @@ try {
 | InvalidIssuerError | INVALID_ISSUER | 400 | iss must be a string or a number |
 | InvalidSecretsError | INVALID_SECRETS | 500 | b64Keys must be an array |
 | InvalidDurationError | INVALID_DURATION | 400 | duration must be a positive number |
-| SecretDecodingError | SECRET_DECODING_ERROR | 500 | could not decode the secret |
+| SecretDecodingError | SECRET_DECODING_ERROR | 500 | could not decode the base64 secret |
 
 ## Express.js
 
