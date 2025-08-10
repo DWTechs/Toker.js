@@ -8,6 +8,7 @@ const config =  {
   },
   external: [
     "@dwtechs/checkard",
+    "@dwtechs/hashitaka",
   ],
   plugins: []
 };

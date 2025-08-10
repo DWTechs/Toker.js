@@ -1,7 +1,7 @@
 {
   "name": "@dwtechs/toker",
   "version": "0.1.0",
-  "description": "Open source JWT management library for Node.js.",
+  "description": "Open source JWT management library for Node.js to sign, verify and parse bearer safely.",
   "keywords": [
     "jwt",
     "token",
