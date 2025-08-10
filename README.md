@@ -8,8 +8,6 @@
 - [Support](#support)
 - [Installation](#installation)
 - [Usage](#usage)
-  - [ES6](#es6)
-  - [Configure](#configure)
 - [API Reference](#api-reference)
 - [Error Handling](#error-handling)
 - [options](#options)
