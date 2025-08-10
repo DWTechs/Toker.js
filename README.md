@@ -70,14 +70,19 @@ function decodeAccessToken(req, res, next){
     return next(err);
   }
   req.body.decodedAccessToken = decodedToken;
+  next();
 }
 
 function refreshToken(req, res, next) {
   const iss = req.body.decodedAccessToken?.iss;
   const newAccessToken = sign(iss, ACCESS_TOKEN_DURATION, "access", secrets);
   const newRefreshToken = sign(iss, REFRESH_TOKEN_DURATION, "refresh", secrets);
-  res.jwt = sign(req.userId, 3600, "access", [TOKEN_SECRET]);
-  next();
+  try {
+    res.jwt = sign(req.userId, 3600, "access", [TOKEN_SECRET]);
+    next();
+  catch(err: any) {
+    next(err);
+  }
 }
 
 export {
