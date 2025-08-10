@@ -1,8 +1,9 @@
-import { sign, randomSecret } from "../dist/passken.js";
-import { isBase64, b64Encode } from "@dwtechs/checkard"
+import { sign } from "../dist/toker.js";
+import { rndB64Secret } from "@dwtechs/hashitaka";
+import { isBase64, b64Encode } from "@dwtechs/checkard";
 
 describe("encodeBase64", () => {
-	const secrets = [randomSecret(), b64Encode("a-string-secret-at-least-256-bits-long", true)];
+	const secrets = [rndB64Secret(), b64Encode("a-string-secret-at-least-256-bits-long", true)];
   console.log("secrets", secrets);
 
 	test("generates a token string with valid inputs", () => {

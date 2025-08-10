@@ -1,4 +1,4 @@
-import { parseBearer, BEARER_TOKEN_ERROR_MESSAGE, MISSING_AUTHORIZATION_ERROR_MESSAGE } from "../dist/passken.js";
+import { parseBearer, BEARER_TOKEN_ERROR_MESSAGE, MISSING_AUTHORIZATION_ERROR_MESSAGE } from "../dist/toker.js";
 
 describe("parseBearer", () => {
   

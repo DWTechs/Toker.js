@@ -160,14 +160,14 @@ export class InvalidSignatureError extends TokerError {
 /**
  * Error thrown when JWT token is missing required claims (like iss)
  */
-export class MissingClaimsError extends TokerError {
-  readonly code = "MISSING_CLAIMS";
-  readonly statusCode = 400;
+// export class MissingClaimsError extends TokerError {
+//   readonly code = "MISSING_CLAIMS";
+//   readonly statusCode = 400;
 
-  constructor(message = `${TOKER_PREFIX}JWT token is missing required claims`) {
-    super(message);
-  }
-}
+//   constructor(message = `${TOKER_PREFIX}JWT token is missing required claims`) {
+//     super(message);
+//   }
+// }
 
 /**
  * Error thrown when the issuer (iss) parameter is invalid during JWT signing
@@ -183,11 +183,11 @@ export class MissingClaimsError extends TokerError {
  * }
  * ```
  */
-export class InvalidIssuerError extends PasskenError {
+export class InvalidIssuerError extends TokerError {
   readonly code = "INVALID_ISSUER";
   readonly statusCode = 400;
-  
-  constructor(message = `${PASSKEN_PREFIX}iss must be a string or a number`) {
+
+  constructor(message = `${TOKER_PREFIX}iss must be a string or a number`) {
     super(message);
   }
 }
@@ -206,11 +206,11 @@ export class InvalidIssuerError extends PasskenError {
  * }
  * ```
  */
-export class InvalidSecretsError extends PasskenError {
+export class InvalidSecretsError extends TokerError {
   readonly code = "INVALID_SECRETS";
   readonly statusCode = 500;
-  
-  constructor(message = `${PASSKEN_PREFIX}b64Keys must be an array`) {
+
+  constructor(message = `${TOKER_PREFIX}b64Keys must be an array`) {
     super(message);
   }
 }
@@ -229,11 +229,11 @@ export class InvalidSecretsError extends PasskenError {
  * }
  * ```
  */
-export class InvalidDurationError extends PasskenError {
+export class InvalidDurationError extends TokerError {
   readonly code = "INVALID_DURATION";
   readonly statusCode = 400;
 
-  constructor(message = `${PASSKEN_PREFIX}duration must be a positive number`) {
+  constructor(message = `${TOKER_PREFIX}duration must be a positive number`) {
     super(message);
   }
 }

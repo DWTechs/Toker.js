@@ -1,4 +1,4 @@
-import { hash, tse } from "./hash.js"; 
+// import { hash, tse } from "./hash.js"; 
 import {
 	isNumber,
 	isString,
@@ -6,9 +6,13 @@ import {
 	isJson,
 	isPositive,
   isBase64, 
+} from "@dwtechs/checkard";
+import {
+  hash,
+  tse,
   b64Encode,
   b64Decode
-} from "@dwtechs/checkard";
+} from "@dwtechs/hashitaka";
 import type { Header, Payload, Type } from "./types";
 import { 
   MissingAuthorizationError, 
@@ -165,8 +169,7 @@ function verify(token: string, b64Keys: string[], ignoreExpiration = false): Pay
   const expectedSignature = hash(`${b64Header}.${b64Payload}`, secret);
   const safeA = Buffer.from(expectedSignature);
   const safeB = Buffer.from(b64Signature);
-  // if (safeB.length >= 32)
-  //     throw new Error("Hashes must be at least 256 bits long");
+
 	if (!tse(safeA, safeB)) 
     throw new InvalidSignatureError();
 

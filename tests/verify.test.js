@@ -1,4 +1,4 @@
-const { verify, sign } = require("../dist/passken.js");
+const { verify, sign } = require("../dist/toker.js");
 // Mock data
 const expiredToken = 
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6MX0.eyJpc3MiOiJ1c2VyMTIzIiwiaWF0IjoxNzQwNjA1NjUyLCJuYmYiOjE3NDA2MDU2NTMsImV4cCI6MTc0MDYwOTI1MiwidHlwIjoiYWNjZXNzIn0.xpEKqwDu7EOjkYfyZHxCOaikcKzU3zX5mMPu5Can7FU";

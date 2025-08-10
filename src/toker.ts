@@ -1,14 +1,5 @@
-export {  getSaltRounds,
-          setSaltRounds,
-          getKeyLen,
-          setKeyLen,
-          getDigest,
-          setDigest,
-          getDigests,
-          encrypt,
-          compare } from './hash';
+
 export {  sign, verify, parseBearer } from './jwt';
-export {  create as randomSecret } from './secret';
 export {  
           TokerError,
           MissingAuthorizationError,
@@ -17,7 +8,7 @@ export {
           TokenExpiredError,
           TokenNotActiveError,
           InvalidSignatureError,
-          MissingClaimsError,
+          // MissingClaimsError,
           InvalidIssuerError,
           InvalidSecretsError,
           InvalidDurationError,
