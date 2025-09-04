@@ -5,7 +5,7 @@ import {
 	isArray,
 	isJson,
 	isPositive,
-  // isBase64, 
+  	isBase64, 
 } from "@dwtechs/checkard";
 import {
   hash,
@@ -20,7 +20,7 @@ import {
   InvalidIssuerError,
   InvalidSecretsError,
   InvalidDurationError,
-  // InvalidBase64Secret,
+  InvalidBase64Secret,
   InvalidTokenError,
   ExpiredTokenError,
   InactiveTokenError,
@@ -60,16 +60,33 @@ function sign(
   type: Type,
 	b64Keys: string[],
 ): string {
+
 	// Check iss is a string or a number
-	if (!isString(iss, "!0") && !isNumber(iss, true))
-    throw new InvalidIssuerError();
+	try {
+		isString(iss, "!0", true) || isNumber(iss, true, true);
+	} catch (err) {
+		const error = new InvalidIssuerError();
+		error.cause = err; // Attach underlying error
+		throw error;
+	}
 
 	// Check b64Keys is an array
-	if (!isArray(b64Keys, ">", 0)) 
-    throw new InvalidSecretsError();
+	try {
+		isArray(b64Keys, ">", 0, true); // throwErr = true
+	} catch (err) {
+		const error = new InvalidSecretsError();
+		error.cause = err; // Attach underlying error
+		throw error;
+	}
 
-	if (!isNumber(duration, false) || !isPositive(duration, true)) 
-    throw new InvalidDurationError();
+	// Check duration is a positive number
+	try {
+		isPositive(duration, true, true);
+	} catch (err) {
+		const error = new InvalidDurationError();
+		error.cause = err; // Attach underlying error
+		throw error;
+	}
 
 	header.kid = randomPick(b64Keys);
 	const b64Secret = b64Keys[header.kid];
@@ -84,8 +101,8 @@ function sign(
   const typ = type === "refresh" ? type : "access";
 	const payload: Payload = { iss, iat, nbf, exp, typ };
 
-	const b64Header = b64Encode(JSON.stringify(header));
-	const b64Payload = b64Encode(JSON.stringify(payload));
+	const b64Header = b64Encode(JSON.stringify(header), true);
+	const b64Payload = b64Encode(JSON.stringify(payload), true);
   const b64Signature = hash(`${b64Header}.${b64Payload}`, secret);
 
 	return `${b64Header}.${b64Payload}.${b64Signature}`;
@@ -125,17 +142,31 @@ function verify(token: string, b64Keys: string[], ignoreExpiration = false): Pay
     throw new InvalidTokenError();
 
 	// Check b64Keys is an array
-	if (!isArray(b64Keys, ">", 0)) 
-    throw new InvalidSecretsError();
+	try {
+		isArray(b64Keys, ">", 0, true); // throwErr = true
+	} catch (err) {
+		const error = new InvalidSecretsError();
+		error.cause = err; // Attach underlying error
+		throw error;
+	}
 
 	// Decode and parse the header and payload
-	const headerString = b64Decode(b64Header);
-	const payloadString = b64Decode(b64Payload);
-	if (!isJson(headerString) || !isJson(payloadString))
-    throw new InvalidTokenError();
+	let headerStr: string;
+	let payloadStr: string;
 	
-	const header = JSON.parse(headerString);
-	const payload = JSON.parse(payloadString);
+	try {
+		headerStr = b64Decode(b64Header, true);
+		payloadStr = b64Decode(b64Payload, true);
+		isJson(headerStr, true);
+		isJson(payloadStr, true);
+	} catch (err) {
+		const error = new InvalidTokenError();
+		error.cause = err; // Attach underlying error
+		throw error;
+	}
+	
+	const header = JSON.parse(headerStr);
+	const payload = JSON.parse(payloadStr);
 
 	// Ensure the algorithm in the header is what we expect (HS256)
 	if (header.alg !== "HS256")
@@ -146,8 +177,13 @@ function verify(token: string, b64Keys: string[], ignoreExpiration = false): Pay
     throw new InvalidTokenError();
 
 	// Ensure the kid in the header is what we expect (string or number)
-  if (!isString(header.kid, "!0") && !isNumber(header.kid, true))
-    throw new InvalidTokenError();
+	try {
+		isString(header.kid, "!0", true) || isNumber(header.kid, true, true);
+	} catch (err) {
+		const error = new InvalidTokenError();
+		error.cause = err; // Attach underlying error
+		throw error;
+	}
 
 	const now = Math.floor(Date.now() / 1000); // Current time in seconds since epoch
 
@@ -160,18 +196,28 @@ function verify(token: string, b64Keys: string[], ignoreExpiration = false): Pay
     throw new ExpiredTokenError();
 
 	const b64Secret = b64Keys[header.kid];
-	// if (!isBase64(b64Secret, true))
-  //   throw new InvalidBase64Secret();
+	try {
+		isBase64(b64Secret, true, true);
+	} catch (err) {
+		const error = new InvalidBase64Secret();
+		error.cause = err; // Attach underlying error
+		throw error;
+	}
 
-	const secret = b64Decode(b64Secret);
+	const secret = b64Decode(b64Secret, true);
 
 	// Verify the signature
   const expectedSignature = hash(`${b64Header}.${b64Payload}`, secret);
   const safeA = Buffer.from(expectedSignature);
   const safeB = Buffer.from(b64Signature);
 
-	if (!tse(safeA, safeB)) 
-    throw new InvalidSignatureError();
+	try {
+		tse(safeA, safeB);
+	} catch (err) {
+		const error = new InvalidSignatureError();
+		error.cause = err; // Attach underlying error
+		throw error;
+	}
 
 	return payload;
 }
