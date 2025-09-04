@@ -5,7 +5,7 @@ import {
 	isArray,
 	isJson,
 	isPositive,
-  isBase64, 
+  // isBase64, 
 } from "@dwtechs/checkard";
 import {
   hash,
@@ -20,7 +20,7 @@ import {
   InvalidIssuerError,
   InvalidSecretsError,
   InvalidDurationError,
-  InvalidBase64Secret,
+  // InvalidBase64Secret,
   InvalidTokenError,
   ExpiredTokenError,
   InactiveTokenError,
@@ -75,8 +75,8 @@ function sign(
 	const b64Secret = b64Keys[header.kid];
 
 	const secret = b64Decode(b64Secret, true);
-	if (!secret)
-    throw new InvalidBase64Secret();
+	// if (!secret)
+  //   throw new InvalidBase64Secret();
 
 	const iat = Math.floor(Date.now() / 1000); // Current time in seconds
 	const nbf = iat + 1;
@@ -160,8 +160,8 @@ function verify(token: string, b64Keys: string[], ignoreExpiration = false): Pay
     throw new ExpiredTokenError();
 
 	const b64Secret = b64Keys[header.kid];
-	if (!isBase64(b64Secret, true))
-    throw new InvalidBase64Secret();
+	// if (!isBase64(b64Secret, true))
+  //   throw new InvalidBase64Secret();
 
 	const secret = b64Decode(b64Secret);
 

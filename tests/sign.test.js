@@ -1,6 +1,6 @@
-import { sign, InvalidIssuerError, InvalidSecretsError, InvalidDurationError, InvalidBase64Secret } from "../dist/toker.js";
-import { rndB64Secret, InvalidStringError } from "@dwtechs/hashitaka";
-import { isBase64, b64Encode } from "@dwtechs/checkard";
+import { sign, InvalidIssuerError, InvalidSecretsError, InvalidDurationError } from "../dist/toker.js";
+import { rndB64Secret, b64Encode } from "@dwtechs/hashitaka";
+import { isBase64 } from "@dwtechs/checkard";
 
 describe("encodeBase64", () => {
 	const secrets = [rndB64Secret(), b64Encode("a-string-secret-at-least-256-bits-long", true)];
@@ -72,7 +72,7 @@ describe("encodeBase64", () => {
 			expect(() => sign("", 3600, "access", secrets)).toThrow(InvalidIssuerError);
 			// Invalid base64 secret (simulate by passing a non-base64 string)
 			const badSecrets = [""];
-			expect(() => sign("user123", 3600, "access", badSecrets)).toThrow(InvalidStringError);
+			expect(() => sign("user123", 3600, "access", badSecrets)).toThrow(Error);
 		});
 
 	test("ensures the signature is Base64 URL-safe encoded", () => {

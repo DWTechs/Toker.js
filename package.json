@@ -37,8 +37,8 @@
     "dist/"
   ],
   "dependencies": {
-    "@dwtechs/checkard": "3.3.0",
-    "@dwtechs/hashitaka": "0.2.1"
+    "@dwtechs/checkard": "3.4.1",
+    "@dwtechs/hashitaka": "0.3.0"
   },
   "devDependencies": {
     "@babel/preset-env": "7.26.0",

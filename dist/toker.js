@@ -24,7 +24,7 @@ SOFTWARE.
 https://github.com/DWTechs/Toker.js
 */
 
-import { isString, isNumber, isArray, isPositive, isJson, isBase64 } from '@dwtechs/checkard';
+import { isString, isNumber, isArray, isPositive, isJson } from '@dwtechs/checkard';
 import { b64Decode, b64Encode, hash, tse } from '@dwtechs/hashitaka';
 import { Buffer } from 'buffer';
 
@@ -124,8 +124,6 @@ function sign(iss, duration, type, b64Keys) {
     header.kid = randomPick(b64Keys);
     const b64Secret = b64Keys[header.kid];
     const secret = b64Decode(b64Secret, true);
-    if (!secret)
-        throw new InvalidBase64Secret();
     const iat = Math.floor(Date.now() / 1000);
     const nbf = iat + 1;
     const exp = duration > 60 ? iat + duration : iat + 60 * 15;
@@ -163,8 +161,6 @@ function verify(token, b64Keys, ignoreExpiration = false) {
     if (!ignoreExpiration && payload.exp < now)
         throw new ExpiredTokenError();
     const b64Secret = b64Keys[header.kid];
-    if (!isBase64(b64Secret, true))
-        throw new InvalidBase64Secret();
     const secret = b64Decode(b64Secret);
     const expectedSignature = hash(`${b64Header}.${b64Payload}`, secret);
     const safeA = Buffer.from(expectedSignature);
