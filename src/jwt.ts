@@ -5,7 +5,7 @@ import {
 	isArray,
 	isJson,
 	isPositive,
-  	isBase64, 
+  isBase64, 
 } from "@dwtechs/checkard";
 import {
   hash,

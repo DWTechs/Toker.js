@@ -20,7 +20,7 @@
 
 **[Toker.js](https://github.com/DWTechs/Toker.js)** is an open source JWT management library for Node.js to sign, verify and parse bearer safely.
 
-- 📦 Only 1 dependency to check inputs variables
+- 📦 Only 2 dependencies to check inputs variables and secure hash creation and comparison
 - 🪶 Very lightweight
 - 🧪 Thoroughly tested
 - 🚚 Shipped as EcmaScrypt module
