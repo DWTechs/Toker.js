@@ -24,86 +24,89 @@ SOFTWARE.
 https://github.com/DWTechs/Toker.js
 */
 
-import { isString, isNumber, isArray, isPositive, isJson } from '@dwtechs/checkard';
+import { isString, isNumber, isArray, isPositive, isJson, isBase64 } from '@dwtechs/checkard';
 import { b64Decode, b64Encode, hash, tse } from '@dwtechs/hashitaka';
 import { Buffer } from 'buffer';
 
 const TOKER_PREFIX = "Toker: ";
+function chainMessage(message, err) {
+    return `${message} - caused by: ${err.message}`;
+}
 class TokerError extends Error {
-    constructor(message) {
-        super(message);
-        this.name = this.constructor.name;
+    constructor(message, causedBy) {
+        super(causedBy ? chainMessage(message, causedBy) : message);
+        this.name = `${TOKER_PREFIX}${this.constructor.name}`;
         if (Error.captureStackTrace) {
             Error.captureStackTrace(this, this.constructor);
         }
     }
 }
 class MissingAuthorizationError extends TokerError {
-    constructor(message = `${TOKER_PREFIX}Authorization header is missing`) {
-        super(message);
+    constructor() {
+        super(`${TOKER_PREFIX}Authorization header is missing`);
         this.code = "MISSING_AUTHORIZATION";
         this.statusCode = 401;
     }
 }
 class InvalidBearerFormatError extends TokerError {
-    constructor(message = `${TOKER_PREFIX}Authorization header must be in the format 'Bearer <token>'`) {
-        super(message);
+    constructor() {
+        super(`${TOKER_PREFIX}Authorization header must be in the format 'Bearer <token>'`);
         this.code = "INVALID_BEARER_FORMAT";
         this.statusCode = 401;
     }
 }
 class InvalidTokenError extends TokerError {
-    constructor(message = `${TOKER_PREFIX}Invalid or malformed JWT token`) {
-        super(message);
+    constructor() {
+        super(`${TOKER_PREFIX}Invalid or malformed JWT token`);
         this.code = "INVALID_TOKEN";
         this.statusCode = 401;
     }
 }
 class ExpiredTokenError extends TokerError {
-    constructor(message = `${TOKER_PREFIX}JWT token has expired`) {
-        super(message);
+    constructor() {
+        super(`${TOKER_PREFIX}JWT token has expired`);
         this.code = "EXPIRED_TOKEN";
         this.statusCode = 401;
     }
 }
 class InactiveTokenError extends TokerError {
-    constructor(message = `${TOKER_PREFIX}JWT token cannot be used yet (nbf claim)`) {
-        super(message);
+    constructor() {
+        super(`${TOKER_PREFIX}JWT token cannot be used yet (nbf claim)`);
         this.code = "INACTIVE_TOKEN";
         this.statusCode = 401;
     }
 }
 class InvalidSignatureError extends TokerError {
-    constructor(message = `${TOKER_PREFIX}JWT token signature is invalid`) {
-        super(message);
+    constructor(causedBy) {
+        super(`${TOKER_PREFIX}JWT token signature is invalid`, causedBy);
         this.code = "INVALID_SIGNATURE";
         this.statusCode = 401;
     }
 }
 class InvalidIssuerError extends TokerError {
-    constructor(message = `${TOKER_PREFIX}iss must be a string or a number`) {
-        super(message);
+    constructor() {
+        super(`${TOKER_PREFIX}iss must be a string or a number`);
         this.code = "INVALID_ISSUER";
         this.statusCode = 400;
     }
 }
 class InvalidSecretsError extends TokerError {
-    constructor(message = `${TOKER_PREFIX}b64Keys must be an array`) {
-        super(message);
+    constructor() {
+        super(`${TOKER_PREFIX}b64Keys must be an array`);
         this.code = "INVALID_SECRETS";
         this.statusCode = 500;
     }
 }
 class InvalidDurationError extends TokerError {
-    constructor(message = `${TOKER_PREFIX}duration must be a positive number`) {
-        super(message);
+    constructor() {
+        super(`${TOKER_PREFIX}duration must be a positive number`);
         this.code = "INVALID_DURATION";
         this.statusCode = 400;
     }
 }
 class InvalidBase64Secret extends TokerError {
-    constructor(message = `${TOKER_PREFIX}could not decode the base64 secret`) {
-        super(message);
+    constructor() {
+        super(`${TOKER_PREFIX}could not decode the base64 secret`);
         this.code = "INVALID_BASE64_SECRET";
         this.statusCode = 500;
     }
@@ -115,12 +118,24 @@ const header = {
     kid: 0,
 };
 function sign(iss, duration, type, b64Keys) {
-    if (!isString(iss, "!0") && !isNumber(iss, true))
+    if (!isString(iss, "!0", null, false) && !isNumber(iss, true, null, null, false))
         throw new InvalidIssuerError();
-    if (!isArray(b64Keys, ">", 0))
-        throw new InvalidSecretsError();
-    if (!isNumber(duration, false) || !isPositive(duration, true))
-        throw new InvalidDurationError();
+    try {
+        isArray(b64Keys, ">", 0, true);
+    }
+    catch (err) {
+        const error = new InvalidSecretsError();
+        error.cause = err;
+        throw error;
+    }
+    try {
+        isPositive(duration, true, true);
+    }
+    catch (err) {
+        const error = new InvalidDurationError();
+        error.cause = err;
+        throw error;
+    }
     header.kid = randomPick(b64Keys);
     const b64Secret = b64Keys[header.kid];
     const secret = b64Decode(b64Secret, true);
@@ -129,8 +144,8 @@ function sign(iss, duration, type, b64Keys) {
     const exp = duration > 60 ? iat + duration : iat + 60 * 15;
     const typ = type === "refresh" ? type : "access";
     const payload = { iss, iat, nbf, exp, typ };
-    const b64Header = b64Encode(JSON.stringify(header));
-    const b64Payload = b64Encode(JSON.stringify(payload));
+    const b64Header = b64Encode(JSON.stringify(header), true);
+    const b64Payload = b64Encode(JSON.stringify(payload), true);
     const b64Signature = hash(`${b64Header}.${b64Payload}`, secret);
     return `${b64Header}.${b64Payload}.${b64Signature}`;
 }
@@ -141,14 +156,29 @@ function verify(token, b64Keys, ignoreExpiration = false) {
     const [b64Header, b64Payload, b64Signature] = segments;
     if (!b64Header || !b64Payload || !b64Signature)
         throw new InvalidTokenError();
-    if (!isArray(b64Keys, ">", 0))
-        throw new InvalidSecretsError();
-    const headerString = b64Decode(b64Header);
-    const payloadString = b64Decode(b64Payload);
-    if (!isJson(headerString) || !isJson(payloadString))
-        throw new InvalidTokenError();
-    const header = JSON.parse(headerString);
-    const payload = JSON.parse(payloadString);
+    try {
+        isArray(b64Keys, ">", 0, true);
+    }
+    catch (err) {
+        const error = new InvalidSecretsError();
+        error.cause = err;
+        throw error;
+    }
+    let headerStr;
+    let payloadStr;
+    try {
+        headerStr = b64Decode(b64Header, true);
+        payloadStr = b64Decode(b64Payload, true);
+        isJson(headerStr, true);
+        isJson(payloadStr, true);
+    }
+    catch (err) {
+        const error = new InvalidTokenError();
+        error.cause = err;
+        throw error;
+    }
+    const header = JSON.parse(headerStr);
+    const payload = JSON.parse(payloadStr);
     if (header.alg !== "HS256")
         throw new InvalidTokenError();
     if (header.typ !== "JWT")
@@ -161,11 +191,26 @@ function verify(token, b64Keys, ignoreExpiration = false) {
     if (!ignoreExpiration && payload.exp < now)
         throw new ExpiredTokenError();
     const b64Secret = b64Keys[header.kid];
-    const secret = b64Decode(b64Secret);
+    try {
+        isBase64(b64Secret, true, true);
+    }
+    catch (err) {
+        const error = new InvalidBase64Secret();
+        error.cause = err;
+        throw error;
+    }
+    const secret = b64Decode(b64Secret, true);
     const expectedSignature = hash(`${b64Header}.${b64Payload}`, secret);
     const safeA = Buffer.from(expectedSignature);
     const safeB = Buffer.from(b64Signature);
-    if (!tse(safeA, safeB))
+    let signaturesMatch;
+    try {
+        signaturesMatch = tse(safeA, safeB);
+    }
+    catch (err) {
+        throw new InvalidSignatureError(err);
+    }
+    if (!signaturesMatch)
         throw new InvalidSignatureError();
     return payload;
 }

@@ -60,15 +60,9 @@ function sign(
   type: Type,
 	b64Keys: string[],
 ): string {
-
 	// Check iss is a string or a number
-	try {
-		isString(iss, "!0", true) || isNumber(iss, true, true);
-	} catch (err) {
-		const error = new InvalidIssuerError();
-		error.cause = err; // Attach underlying error
-		throw error;
-	}
+	if (!isString(iss, "!0", null, false) && !isNumber(iss, true, null, null, false))
+		throw new InvalidIssuerError();
 
 	// Check b64Keys is an array
 	try {
@@ -177,13 +171,8 @@ function verify(token: string, b64Keys: string[], ignoreExpiration = false): Pay
     throw new InvalidTokenError();
 
 	// Ensure the kid in the header is what we expect (string or number)
-	try {
-		isString(header.kid, "!0", true) || isNumber(header.kid, true, true);
-	} catch (err) {
-		const error = new InvalidTokenError();
-		error.cause = err; // Attach underlying error
-		throw error;
-	}
+	if (!isString(header.kid, "!0") && !isNumber(header.kid, true))
+		throw new InvalidTokenError();
 
 	const now = Math.floor(Date.now() / 1000); // Current time in seconds since epoch
 
@@ -211,13 +200,16 @@ function verify(token: string, b64Keys: string[], ignoreExpiration = false): Pay
   const safeA = Buffer.from(expectedSignature);
   const safeB = Buffer.from(b64Signature);
 
+  let signaturesMatch: boolean;
 	try {
-		tse(safeA, safeB);
+		signaturesMatch = tse(safeA, safeB);
 	} catch (err) {
-		const error = new InvalidSignatureError();
-		error.cause = err; // Attach underlying error
-		throw error;
+		// If tse throws (HashLengthMismatchError), it's also a signature error
+		throw new InvalidSignatureError(err);
 	}
+
+  if (!signaturesMatch)
+		throw new InvalidSignatureError();
 
 	return payload;
 }

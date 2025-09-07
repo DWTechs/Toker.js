@@ -8,15 +8,23 @@
 const TOKER_PREFIX = "Toker: ";
 
 /**
+ * Chains the current error message with the underlying error message
+ * @param err The underlying error that caused this error
+ */
+function chainMessage(message: string, err: Error): string {
+  return `${message} - caused by: ${err.message}`;
+}
+
+/**
  * Base class for all Toker authentication errors
  */
 export abstract class TokerError extends Error {
   abstract readonly code: string;
   abstract readonly statusCode: number;
   
-  constructor(message: string) {
-    super(message);
-    this.name = this.constructor.name;
+  constructor(message: string, causedBy?: Error) {
+    super(causedBy ? chainMessage(message, causedBy) : message);
+    this.name = `${TOKER_PREFIX}${this.constructor.name}`;
     
     // Maintains proper stack trace for where our error was thrown (only available on V8)
     if (Error.captureStackTrace) {
@@ -44,8 +52,8 @@ export class MissingAuthorizationError extends TokerError {
   readonly code = "MISSING_AUTHORIZATION";
   readonly statusCode = 401;
 
-  constructor(message = `${TOKER_PREFIX}Authorization header is missing`) {
-    super(message);
+  constructor() {
+    super(`${TOKER_PREFIX}Authorization header is missing`);
   }
 }
 
@@ -68,8 +76,8 @@ export class InvalidBearerFormatError extends TokerError {
   readonly code = "INVALID_BEARER_FORMAT";
   readonly statusCode = 401;
 
-  constructor(message = `${TOKER_PREFIX}Authorization header must be in the format 'Bearer <token>'`) {
-    super(message);
+  constructor() {
+    super(`${TOKER_PREFIX}Authorization header must be in the format 'Bearer <token>'`);
   }
 }
 
@@ -92,8 +100,8 @@ export class InvalidTokenError extends TokerError {
   readonly code = "INVALID_TOKEN";
   readonly statusCode = 401;
 
-  constructor(message = `${TOKER_PREFIX}Invalid or malformed JWT token`) {
-    super(message);
+  constructor() {
+    super(`${TOKER_PREFIX}Invalid or malformed JWT token`);
   }
 }
 
@@ -116,8 +124,8 @@ export class ExpiredTokenError extends TokerError {
   readonly code = "EXPIRED_TOKEN";
   readonly statusCode = 401;
 
-  constructor(message = `${TOKER_PREFIX}JWT token has expired`) {
-    super(message);
+  constructor() {
+    super(`${TOKER_PREFIX}JWT token has expired`);
   }
 }
 
@@ -140,8 +148,8 @@ export class InactiveTokenError extends TokerError {
   readonly code = "INACTIVE_TOKEN";
   readonly statusCode = 401;
 
-  constructor(message = `${TOKER_PREFIX}JWT token cannot be used yet (nbf claim)`) {
-    super(message);
+  constructor() {
+    super(`${TOKER_PREFIX}JWT token cannot be used yet (nbf claim)`);
   }
 }
 
@@ -152,8 +160,8 @@ export class InvalidSignatureError extends TokerError {
   readonly code = "INVALID_SIGNATURE";
   readonly statusCode = 401;
 
-  constructor(message = `${TOKER_PREFIX}JWT token signature is invalid`) {
-    super(message);
+  constructor(causedBy?: Error) {
+    super(`${TOKER_PREFIX}JWT token signature is invalid`, causedBy);
   }
 }
 
@@ -187,8 +195,8 @@ export class InvalidIssuerError extends TokerError {
   readonly code = "INVALID_ISSUER";
   readonly statusCode = 400;
 
-  constructor(message = `${TOKER_PREFIX}iss must be a string or a number`) {
-    super(message);
+  constructor() {
+    super(`${TOKER_PREFIX}iss must be a string or a number`);
   }
 }
 
@@ -210,8 +218,8 @@ export class InvalidSecretsError extends TokerError {
   readonly code = "INVALID_SECRETS";
   readonly statusCode = 500;
 
-  constructor(message = `${TOKER_PREFIX}b64Keys must be an array`) {
-    super(message);
+  constructor() {
+    super(`${TOKER_PREFIX}b64Keys must be an array`);
   }
 }
 
@@ -233,8 +241,8 @@ export class InvalidDurationError extends TokerError {
   readonly code = "INVALID_DURATION";
   readonly statusCode = 400;
 
-  constructor(message = `${TOKER_PREFIX}duration must be a positive number`) {
-    super(message);
+  constructor() {
+    super(`${TOKER_PREFIX}duration must be a positive number`);
   }
 }
 
@@ -256,7 +264,7 @@ export class InvalidBase64Secret extends TokerError {
   readonly code = "INVALID_BASE64_SECRET";
   readonly statusCode = 500;
 
-  constructor(message = `${TOKER_PREFIX}could not decode the base64 secret`) {
-    super(message);
+  constructor() {
+    super(`${TOKER_PREFIX}could not decode the base64 secret`);
   }
 }
