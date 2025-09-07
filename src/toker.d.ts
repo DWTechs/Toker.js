@@ -30,7 +30,7 @@ export declare class InvalidBearerFormatError extends TokerError {
 export declare class InvalidTokenError extends TokerError {
     readonly code = "INVALID_TOKEN";
     readonly statusCode = 401;
-    constructor();
+    constructor(causedBy?: Error);
 }
 export declare class ExpiredTokenError extends TokerError {
     readonly code = "EXPIRED_TOKEN";
@@ -55,17 +55,17 @@ export declare class InvalidIssuerError extends TokerError {
 export declare class InvalidSecretsError extends TokerError {
     readonly code = "INVALID_SECRETS";
     readonly statusCode = 500;
-    constructor();
+    constructor(causedBy?: Error);
 }
 export declare class InvalidDurationError extends TokerError {
     readonly code = "INVALID_DURATION";
     readonly statusCode = 400;
-    constructor();
+    constructor(causedBy?: Error);
 }
 export declare class InvalidBase64Secret extends TokerError {
     readonly code = "INVALID_BASE64_SECRET";
     readonly statusCode = 500;
-    constructor();
+    constructor(causedBy?: Error);
 }
 
 declare function sign(iss: number | string, duration: number, type: Type, b64Keys: string[]): string;

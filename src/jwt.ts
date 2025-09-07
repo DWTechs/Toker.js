@@ -61,25 +61,21 @@ function sign(
 	b64Keys: string[],
 ): string {
 	// Check iss is a string or a number
-	if (!isString(iss, "!0", null, false) && !isNumber(iss, true, null, null, false))
+	if (!isString(iss, "!0") && !isNumber(iss, true))
 		throw new InvalidIssuerError();
 
 	// Check b64Keys is an array
 	try {
 		isArray(b64Keys, ">", 0, true); // throwErr = true
 	} catch (err) {
-		const error = new InvalidSecretsError();
-		error.cause = err; // Attach underlying error
-		throw error;
+		throw new InvalidSecretsError(err);
 	}
 
 	// Check duration is a positive number
 	try {
 		isPositive(duration, true, true);
 	} catch (err) {
-		const error = new InvalidDurationError();
-		error.cause = err; // Attach underlying error
-		throw error;
+		throw new InvalidDurationError(err)
 	}
 
 	header.kid = randomPick(b64Keys);
@@ -139,9 +135,7 @@ function verify(token: string, b64Keys: string[], ignoreExpiration = false): Pay
 	try {
 		isArray(b64Keys, ">", 0, true); // throwErr = true
 	} catch (err) {
-		const error = new InvalidSecretsError();
-		error.cause = err; // Attach underlying error
-		throw error;
+		throw new InvalidSecretsError(err);
 	}
 
 	// Decode and parse the header and payload
@@ -154,9 +148,7 @@ function verify(token: string, b64Keys: string[], ignoreExpiration = false): Pay
 		isJson(headerStr, true);
 		isJson(payloadStr, true);
 	} catch (err) {
-		const error = new InvalidTokenError();
-		error.cause = err; // Attach underlying error
-		throw error;
+		throw new InvalidTokenError(err);
 	}
 	
 	const header = JSON.parse(headerStr);
@@ -188,9 +180,7 @@ function verify(token: string, b64Keys: string[], ignoreExpiration = false): Pay
 	try {
 		isBase64(b64Secret, true, true);
 	} catch (err) {
-		const error = new InvalidBase64Secret();
-		error.cause = err; // Attach underlying error
-		throw error;
+		throw new InvalidBase64Secret(err);
 	}
 
 	const secret = b64Decode(b64Secret, true);

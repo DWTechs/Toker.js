@@ -56,8 +56,8 @@ class InvalidBearerFormatError extends TokerError {
     }
 }
 class InvalidTokenError extends TokerError {
-    constructor() {
-        super(`${TOKER_PREFIX}Invalid or malformed JWT token`);
+    constructor(causedBy) {
+        super(`${TOKER_PREFIX}Invalid or malformed JWT token`, causedBy);
         this.code = "INVALID_TOKEN";
         this.statusCode = 401;
     }
@@ -91,22 +91,22 @@ class InvalidIssuerError extends TokerError {
     }
 }
 class InvalidSecretsError extends TokerError {
-    constructor() {
-        super(`${TOKER_PREFIX}b64Keys must be an array`);
+    constructor(causedBy) {
+        super(`${TOKER_PREFIX}b64Keys must be an array`, causedBy);
         this.code = "INVALID_SECRETS";
         this.statusCode = 500;
     }
 }
 class InvalidDurationError extends TokerError {
-    constructor() {
-        super(`${TOKER_PREFIX}duration must be a positive number`);
+    constructor(causedBy) {
+        super(`${TOKER_PREFIX}duration must be a positive number`, causedBy);
         this.code = "INVALID_DURATION";
         this.statusCode = 400;
     }
 }
 class InvalidBase64Secret extends TokerError {
-    constructor() {
-        super(`${TOKER_PREFIX}could not decode the base64 secret`);
+    constructor(causedBy) {
+        super(`${TOKER_PREFIX}could not decode the base64 secret`, causedBy);
         this.code = "INVALID_BASE64_SECRET";
         this.statusCode = 500;
     }
@@ -118,23 +118,19 @@ const header = {
     kid: 0,
 };
 function sign(iss, duration, type, b64Keys) {
-    if (!isString(iss, "!0", null, false) && !isNumber(iss, true, null, null, false))
+    if (!isString(iss, "!0") && !isNumber(iss, true))
         throw new InvalidIssuerError();
     try {
         isArray(b64Keys, ">", 0, true);
     }
     catch (err) {
-        const error = new InvalidSecretsError();
-        error.cause = err;
-        throw error;
+        throw new InvalidSecretsError(err);
     }
     try {
         isPositive(duration, true, true);
     }
     catch (err) {
-        const error = new InvalidDurationError();
-        error.cause = err;
-        throw error;
+        throw new InvalidDurationError(err);
     }
     header.kid = randomPick(b64Keys);
     const b64Secret = b64Keys[header.kid];
@@ -160,9 +156,7 @@ function verify(token, b64Keys, ignoreExpiration = false) {
         isArray(b64Keys, ">", 0, true);
     }
     catch (err) {
-        const error = new InvalidSecretsError();
-        error.cause = err;
-        throw error;
+        throw new InvalidSecretsError(err);
     }
     let headerStr;
     let payloadStr;
@@ -173,9 +167,7 @@ function verify(token, b64Keys, ignoreExpiration = false) {
         isJson(payloadStr, true);
     }
     catch (err) {
-        const error = new InvalidTokenError();
-        error.cause = err;
-        throw error;
+        throw new InvalidTokenError(err);
     }
     const header = JSON.parse(headerStr);
     const payload = JSON.parse(payloadStr);
@@ -195,9 +187,7 @@ function verify(token, b64Keys, ignoreExpiration = false) {
         isBase64(b64Secret, true, true);
     }
     catch (err) {
-        const error = new InvalidBase64Secret();
-        error.cause = err;
-        throw error;
+        throw new InvalidBase64Secret(err);
     }
     const secret = b64Decode(b64Secret, true);
     const expectedSignature = hash(`${b64Header}.${b64Payload}`, secret);

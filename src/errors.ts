@@ -100,8 +100,8 @@ export class InvalidTokenError extends TokerError {
   readonly code = "INVALID_TOKEN";
   readonly statusCode = 401;
 
-  constructor() {
-    super(`${TOKER_PREFIX}Invalid or malformed JWT token`);
+  constructor(causedBy?: Error) {
+    super(`${TOKER_PREFIX}Invalid or malformed JWT token`, causedBy);
   }
 }
 
@@ -151,6 +151,7 @@ export class InactiveTokenError extends TokerError {
   constructor() {
     super(`${TOKER_PREFIX}JWT token cannot be used yet (nbf claim)`);
   }
+  
 }
 
 /**
@@ -218,9 +219,10 @@ export class InvalidSecretsError extends TokerError {
   readonly code = "INVALID_SECRETS";
   readonly statusCode = 500;
 
-  constructor() {
-    super(`${TOKER_PREFIX}b64Keys must be an array`);
+  constructor(causedBy?: Error) {
+    super(`${TOKER_PREFIX}b64Keys must be an array`, causedBy);
   }
+
 }
 
 /**
@@ -241,9 +243,10 @@ export class InvalidDurationError extends TokerError {
   readonly code = "INVALID_DURATION";
   readonly statusCode = 400;
 
-  constructor() {
-    super(`${TOKER_PREFIX}duration must be a positive number`);
+  constructor(causedBy?: Error) {
+    super(`${TOKER_PREFIX}duration must be a positive number`, causedBy);
   }
+
 }
 
 /**
@@ -264,7 +267,7 @@ export class InvalidBase64Secret extends TokerError {
   readonly code = "INVALID_BASE64_SECRET";
   readonly statusCode = 500;
 
-  constructor() {
-    super(`${TOKER_PREFIX}could not decode the base64 secret`);
+  constructor(causedBy?: Error) {
+    super(`${TOKER_PREFIX}could not decode the base64 secret`, causedBy);
   }
 }
