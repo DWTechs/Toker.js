@@ -8,7 +8,6 @@ export {
           ExpiredTokenError,
           InactiveTokenError,
           InvalidSignatureError,
-          // MissingClaimsError,
           InvalidIssuerError,
           InvalidSecretsError,
           InvalidDurationError,

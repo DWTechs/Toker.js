@@ -204,7 +204,6 @@ function verify(token: string, b64Keys: string[], ignoreExpiration = false): Pay
 	try {
 		signaturesMatch = tse(safeA, safeB);
 	} catch (err) {
-		// If tse throws (HashLengthMismatchError), it's also a signature error
 		throw new InvalidSignatureError(err);
 	}
 

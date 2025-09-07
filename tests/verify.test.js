@@ -60,12 +60,13 @@ describe("verify", () => {
 		expect(() => { verify(expiredToken, b64Secrets)}).toThrow(ExpiredTokenError);
 	});
 
-  	it("should throw error when secrets don't match with different secret size", () => {
-		expect(() => {verify(TokenWithBadSecret, b64Secrets, true)}).toThrow(HashLengthMismatchError);
+  	it("should throw InvalidSignatureError when secrets don't match with different secret size", () => {
+		expect(() => {verify(TokenWithBadSecret, b64Secrets, true)}).toThrow(InvalidSignatureError);
 	});
 
-	it("should throw error when secrets don't match", () => {
-		expect(() => {verify(invalidTokenSecrets, b64Secrets, true)}).toThrow(HashLengthMismatchError);
+	it("should throw InvalidSignatureError when secrets don't match", async () => {
+		await wait(); // Wait to avoid nbf error
+		expect(() => {verify(invalidTokenSecrets, b64Secrets, true)}).toThrow(InvalidSignatureError);
 	});
 
 	it("should throw error when signature does not match (wrong secret)", async () => {
@@ -76,6 +77,24 @@ describe("verify", () => {
 			'YW5vdGhlci1mYWtlLXNlY3JldC1mb3ItdGVzdA'
 		];
 		expect(() => {verify(validToken, wrongSecrets, true)}).toThrow(InvalidSignatureError);
+	});
+
+	it("should throw InvalidSignatureError when tse throws HashLengthMismatchError", () => {
+		// Create a token with a signature of different length to trigger HashLengthMismatchError in tse
+		// This tests the specific catch block: catch(err) { throw new InvalidSignatureError(undefined, err); }
+		// The tse function will throw HashLengthMismatchError due to buffer length mismatch,
+		// which should be wrapped in InvalidSignatureError with proper error chaining
+		const tokenWithShortSignature = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6MH0.eyJpc3MiOiJ1c2VyMTIzIiwiaWF0IjoxNzQwMjQ3OTEzLCJuYmYiOjE3NDAyNDc5MTQsImV4cCI6MTc0MDI1MTUxMywidHlwIjoiYWNjZXNzIn0.short";
+		
+		try {
+			verify(tokenWithShortSignature, b64Secrets, true);
+			fail("Expected InvalidSignatureError to be thrown");
+		} catch (error) {
+			expect(error).toBeInstanceOf(InvalidSignatureError);
+			expect(error.message).toContain("JWT token signature is invalid");
+			expect(error.message).toContain("caused by:");
+			expect(error.message).toContain("Hashes must have the same byte length");
+		}
 	});
 
   	it("should return the decoded token with exp claim in the past and ignoreExpiration = true", () => {
