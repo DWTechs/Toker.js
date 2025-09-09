@@ -227,21 +227,6 @@ function parseBearer(authorization: string | undefined): string {}
 
 Toker uses a structured error system that helps you identify and handle specific error cases. All errors extend from a base `TokerError` class.
 
-### Error Classes Hierarchy
-
-```
-TokerError (abstract base class)
-├── MissingAuthorizationError
-├── InvalidBearerFormatError
-├── InvalidTokenError
-├── ExpiredTokenError
-├── InactiveTokenError
-├── InvalidSignatureError
-├── InvalidIssuerError
-├── InvalidSecretsError
-├── InvalidDurationError
-├── InvalidBase64Secret
-```
 
 ### Common Properties
 
