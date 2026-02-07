@@ -86,7 +86,7 @@ function sign(
   //   throw new InvalidBase64Secret();
 
 	const iat = Math.floor(Date.now() / 1000); // Current time in seconds
-	const nbf = iat + 1;
+	const nbf = iat;
 	const exp = duration > 60 ? iat + duration : iat + 60 * 15;
   const typ = type === "refresh" ? type : "access";
 	const payload: Payload = { iss, iat, nbf, exp, typ };

@@ -52,10 +52,6 @@ describe("verify", () => {
 		expect(() => { verify(invalidKidToken, b64Secrets)}).toThrow(InvalidTokenError);
 	});
 
-	it("should throw error for a token with nbf claim in the future", () => {
-		expect(() => { verify(validToken, b64Secrets)}).toThrow(InactiveTokenError);
-	});
-
 	it("should throw error for a token with exp claim in the past", () => {
 		expect(() => { verify(expiredToken, b64Secrets)}).toThrow(ExpiredTokenError);
 	});

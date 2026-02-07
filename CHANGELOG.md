@@ -1,3 +1,7 @@
+# 0.1.2 (Feb 7th 2026)
+
+- Fixed JWT token "not before" (nbf) claim timing. Tokens are now immediately valid upon issuance (nbf = iat)
+
 # 0.1.1 (Sep 6th 2025)
 
 - Updated dependencies in package.json:

@@ -136,7 +136,7 @@ function sign(iss, duration, type, b64Keys) {
     const b64Secret = b64Keys[header.kid];
     const secret = b64Decode(b64Secret, true);
     const iat = Math.floor(Date.now() / 1000);
-    const nbf = iat + 1;
+    const nbf = iat;
     const exp = duration > 60 ? iat + duration : iat + 60 * 15;
     const typ = type === "refresh" ? type : "access";
     const payload = { iss, iat, nbf, exp, typ };
