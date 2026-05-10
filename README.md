@@ -23,7 +23,7 @@
 - 📦 Only 2 dependencies to check inputs variables and secure hash creation and comparison
 - 🪶 Very lightweight
 - 🧪 Thoroughly tested
-- 🚚 Shipped as ES2022 ESM module
+- 🚚 Shipped as ES2022 ECMAScript module
 - 📝 Written in Typescript
 
 ## Installation

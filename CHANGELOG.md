@@ -1,5 +1,6 @@
 # 0.2.0 (May 10th 2026)
 
+- Now distributed as a native ES2022 ECMAScript module (ESM)
 ### Security
 - Signature is now verified **before** checking `nbf`/`exp` claims, preventing timing-based information leakage on forged tokens
 - Replaced `Math.random()` with `crypto.randomInt()` (CSPRNG) for key index selection
