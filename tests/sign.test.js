@@ -132,4 +132,38 @@ describe("encodeBase64", () => {
 		expect(typeof token).toBe("string");
 	});
 
+	test("duration = 0 throws InvalidDurationError", () => {
+		expect(() => sign("user123", 0, "access", secrets)).toThrow(InvalidDurationError);
+	});
+
+	test("duration = 60 (boundary) uses minimum 15-minute expiry", () => {
+		const now = Math.floor(Date.now() / 1000);
+		const token = sign("user123", 60, "access", secrets);
+		const payload = JSON.parse(Buffer.from(token.split(".")[1], "base64url").toString());
+		expect(payload.exp - now).toBeCloseTo(60 * 15, -1);
+	});
+
+	test("duration = 61 (boundary) uses actual duration", () => {
+		const now = Math.floor(Date.now() / 1000);
+		const token = sign("user123", 61, "access", secrets);
+		const payload = JSON.parse(Buffer.from(token.split(".")[1], "base64url").toString());
+		expect(payload.exp - now).toBeCloseTo(61, -1);
+	});
+
+	test("duration = NaN throws InvalidDurationError", () => {
+		expect(() => sign("user123", NaN, "access", secrets)).toThrow(InvalidDurationError);
+	});
+
+	test("issuer = 0 (zero number) is valid", () => {
+		const token = sign(0, 3600, "access", secrets);
+		const payload = JSON.parse(Buffer.from(token.split(".")[1], "base64url").toString());
+		expect(payload.iss).toBe(0);
+	});
+
+	test("nbf equals iat on sign", () => {
+		const token = sign("user123", 3600, "access", secrets);
+		const payload = JSON.parse(Buffer.from(token.split(".")[1], "base64url").toString());
+		expect(payload.nbf).toBe(payload.iat);
+	});
+
 });

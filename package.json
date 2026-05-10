@@ -9,8 +9,15 @@
     "authentication"
   ],
   "homepage": "https://github.com/DWTechs/Toker.js",
+  "type": "module",
   "main": "dist/toker.js",
   "types": "dist/toker.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/toker.js",
+      "types": "./dist/toker.d.ts"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/DWTechs/Toker.js"

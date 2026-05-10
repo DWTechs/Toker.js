@@ -1,5 +1,5 @@
 import { verify, sign, InvalidTokenError, InactiveTokenError, ExpiredTokenError, InvalidSignatureError, InvalidSecretsError, InvalidBase64Secret } from "../dist/toker.js";
-import { HashLengthMismatchError } from "@dwtechs/hashitaka";
+import { HashLengthMismatchError, b64Encode, b64Decode, hash } from "@dwtechs/hashitaka";
 // Mock data
 const expiredToken = 
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6MX0.eyJpc3MiOiJ1c2VyMTIzIiwiaWF0IjoxNzQwNjA1NjUyLCJuYmYiOjE3NDA2MDU2NTMsImV4cCI6MTc0MDYwOTI1MiwidHlwIjoiYWNjZXNzIn0.xpEKqwDu7EOjkYfyZHxCOaikcKzU3zX5mMPu5Can7FU";
@@ -131,5 +131,71 @@ describe("verify", () => {
 	it("should return the decoded token for a valid token", () => {
 		const result = verify(validToken, b64Secrets);
 		expect(result).toBeInstanceOf(Object);
+	});
+
+	it("should throw InvalidTokenError when a segment is empty (e.g. header..sig)", () => {
+		expect(() => { verify("a..c", b64Secrets) }).toThrow(InvalidTokenError);
+		expect(() => { verify(".b.c", b64Secrets) }).toThrow(InvalidTokenError);
+		expect(() => { verify("a.b.", b64Secrets) }).toThrow(InvalidTokenError);
+	});
+
+	it("should throw InactiveTokenError for a token with a future nbf claim", () => {
+		const kid = 0;
+		const secret = b64Decode(b64Secrets[kid], true);
+		const now = Math.floor(Date.now() / 1000);
+		const futureNbf = now + 3600;
+		const hdr = { alg: "HS256", typ: "JWT", kid };
+		const pl = { iss: "user123", iat: now, nbf: futureNbf, exp: now + 7200, typ: "access" };
+		const b64Header = b64Encode(JSON.stringify(hdr), true);
+		const b64Payload = b64Encode(JSON.stringify(pl), true);
+		const sig = hash(`${b64Header}.${b64Payload}`, secret);
+		const inactiveToken = `${b64Header}.${b64Payload}.${sig}`;
+		expect(() => { verify(inactiveToken, b64Secrets) }).toThrow(InactiveTokenError);
+	});
+
+	it("InactiveTokenError should have correct code and statusCode", () => {
+		const kid = 0;
+		const secret = b64Decode(b64Secrets[kid], true);
+		const now = Math.floor(Date.now() / 1000);
+		const hdr = { alg: "HS256", typ: "JWT", kid };
+		const pl = { iss: "user123", iat: now, nbf: now + 3600, exp: now + 7200, typ: "access" };
+		const b64Header = b64Encode(JSON.stringify(hdr), true);
+		const b64Payload = b64Encode(JSON.stringify(pl), true);
+		const sig = hash(`${b64Header}.${b64Payload}`, secret);
+		const inactiveToken = `${b64Header}.${b64Payload}.${sig}`;
+		try {
+			verify(inactiveToken, b64Secrets);
+			fail("Expected InactiveTokenError");
+		} catch (error) {
+			expect(error).toBeInstanceOf(InactiveTokenError);
+			expect(error.code).toBe("INACTIVE_TOKEN");
+			expect(error.statusCode).toBe(401);
+		}
+	});
+
+	it("should not throw InactiveTokenError when nbf is 0 (falsy)", () => {
+		const kid = 0;
+		const secret = b64Decode(b64Secrets[kid], true);
+		const now = Math.floor(Date.now() / 1000);
+		const hdr = { alg: "HS256", typ: "JWT", kid };
+		const pl = { iss: "user123", iat: now, nbf: 0, exp: now + 3600, typ: "access" };
+		const b64Header = b64Encode(JSON.stringify(hdr), true);
+		const b64Payload = b64Encode(JSON.stringify(pl), true);
+		const sig = hash(`${b64Header}.${b64Payload}`, secret);
+		const tokenWithZeroNbf = `${b64Header}.${b64Payload}.${sig}`;
+		expect(() => { verify(tokenWithZeroNbf, b64Secrets) }).not.toThrow();
+	});
+
+	it("should not throw InactiveTokenError when nbf equals now", () => {
+		const kid = 0;
+		const secret = b64Decode(b64Secrets[kid], true);
+		const now = Math.floor(Date.now() / 1000);
+		const hdr = { alg: "HS256", typ: "JWT", kid };
+		const pl = { iss: "user123", iat: now, nbf: now, exp: now + 3600, typ: "access" };
+		const b64Header = b64Encode(JSON.stringify(hdr), true);
+		const b64Payload = b64Encode(JSON.stringify(pl), true);
+		const sig = hash(`${b64Header}.${b64Payload}`, secret);
+		const tokenNbfNow = `${b64Header}.${b64Payload}.${sig}`;
+		expect(() => { verify(tokenNbfNow, b64Secrets) }).not.toThrow();
 	});
 });
