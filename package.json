@@ -1,6 +1,6 @@
 {
   "name": "@dwtechs/toker",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Open source JWT management library for Node.js to sign, verify and parse bearer safely.",
   "keywords": [
     "jwt",
@@ -9,15 +9,14 @@
     "authentication"
   ],
   "homepage": "https://github.com/DWTechs/Toker.js",
-  "main": "dist/toker",
-  "types": "dist/toker",
+  "main": "dist/toker.js",
+  "types": "dist/toker.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/DWTechs/Toker.js"
   },
   "bugs": {
-    "url": "https://github.com/DWTechs/Toker.js/issues",
-    "email": ""
+    "url": "https://github.com/DWTechs/Toker.js/issues"
   },
   "license": "MIT",
   "author": {
@@ -25,9 +24,7 @@
     "email": "http://www.lcluber.com/contact",
     "url": "http://www.lcluber.com"
   },
-  "contributors": [],
   "scripts": {
-    "start": "",
     "prebuild": "npm install",
     "build": "node ./scripts/clear && tsc && npm run rollup && node ./scripts/copy && npm run test",
     "rollup": "rollup --config rollup.config.mjs",
@@ -36,15 +33,18 @@
   "files": [
     "dist/"
   ],
+    "engines": {
+    "node": ">= 22"
+  },
   "dependencies": {
-    "@dwtechs/checkard": "3.5.1",
-    "@dwtechs/hashitaka": "0.3.1"
+    "@dwtechs/checkard": "3.6.0",
+    "@dwtechs/hashitaka": "0.4.0"
   },
   "devDependencies": {
     "@babel/preset-env": "7.26.0",
-    "@types/node": "24.1.0",
+    "@types/node": "25.6.0",
     "jest": "29.7.0",
     "rollup": "4.24.0",
-    "typescript": "5.6.3"
+    "typescript": "6.0.3"
   }
 }

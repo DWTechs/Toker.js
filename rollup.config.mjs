@@ -1,6 +1,6 @@
 
 const config =  {
-  input: "build/es6/toker.js",
+  input: "build/toker.js",
   output: {
     name: "toker",
     file: "build/toker.mjs",

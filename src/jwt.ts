@@ -1,18 +1,17 @@
-// import { hash, tse } from "./hash.js"; 
 import {
 	isNumber,
 	isString,
 	isArray,
 	isJson,
 	isPositive,
-  isBase64, 
 } from "@dwtechs/checkard";
 import {
   hash,
   tse,
   b64Encode,
-  b64Decode
+  b64Decode,
 } from "@dwtechs/hashitaka";
+import { randomInt } from "node:crypto";
 import type { Header, Payload, Type } from "./types";
 import { 
   MissingAuthorizationError, 
@@ -26,13 +25,6 @@ import {
   InactiveTokenError,
   InvalidSignatureError
 } from "./errors.js";
-import { Buffer } from "buffer";
-
-const header: Header = {
-  alg: "HS256", // HMAC using SHA-256 hash algorithm
-  typ: "JWT", // JSON Web Token
-  kid: 0, // Random key ID
-};
 
 /**
  * Signs a JWT (JSON Web Token) with the given parameters.
@@ -78,12 +70,15 @@ function sign(
 		throw new InvalidDurationError(err)
 	}
 
-	header.kid = randomPick(b64Keys);
-	const b64Secret = b64Keys[header.kid];
+	const kid = randomInt(0, b64Keys.length);
+	const b64Secret = b64Keys[kid];
 
-	const secret = b64Decode(b64Secret, true);
-	// if (!secret)
-  //   throw new InvalidBase64Secret();
+	let secret: string;
+	try {
+		secret = b64Decode(b64Secret, true);
+	} catch (err) {
+		throw new InvalidBase64Secret(err);
+	}
 
 	const iat = Math.floor(Date.now() / 1000); // Current time in seconds
 	const nbf = iat;
@@ -91,7 +86,8 @@ function sign(
   const typ = type === "refresh" ? type : "access";
 	const payload: Payload = { iss, iat, nbf, exp, typ };
 
-	const b64Header = b64Encode(JSON.stringify(header), true);
+	const hdr: Header = { alg: "HS256", typ: "JWT", kid };
+	const b64Header = b64Encode(JSON.stringify(hdr), true);
 	const b64Payload = b64Encode(JSON.stringify(payload), true);
   const b64Signature = hash(`${b64Header}.${b64Payload}`, secret);
 
@@ -162,30 +158,19 @@ function verify(token: string, b64Keys: string[], ignoreExpiration = false): Pay
 	if (header.typ !== "JWT")
     throw new InvalidTokenError();
 
-	// Ensure the kid in the header is what we expect (string or number)
-	if (!isString(header.kid, "!0") && !isNumber(header.kid, true))
+	// Ensure the kid is a valid non-negative integer within bounds
+	if (!isNumber(header.kid, true) || header.kid < 0 || header.kid >= b64Keys.length)
 		throw new InvalidTokenError();
 
-	const now = Math.floor(Date.now() / 1000); // Current time in seconds since epoch
-
-	// Validate "nbf" claim
-	if (payload.nbf && payload.nbf > now)
-    throw new InactiveTokenError();
-
-	// validate the "exp" claim
-	if (!ignoreExpiration && payload.exp < now)
-    throw new ExpiredTokenError();
-
 	const b64Secret = b64Keys[header.kid];
+	let secret: string;
 	try {
-		isBase64(b64Secret, true, true);
+		secret = b64Decode(b64Secret, true);
 	} catch (err) {
 		throw new InvalidBase64Secret(err);
 	}
 
-	const secret = b64Decode(b64Secret, true);
-
-	// Verify the signature
+	// Verify the signature before checking time claims
   const expectedSignature = hash(`${b64Header}.${b64Payload}`, secret);
   const safeA = Buffer.from(expectedSignature);
   const safeB = Buffer.from(b64Signature);
@@ -199,6 +184,16 @@ function verify(token: string, b64Keys: string[], ignoreExpiration = false): Pay
 
   if (!signaturesMatch)
 		throw new InvalidSignatureError();
+
+	const now = Math.floor(Date.now() / 1000); // Current time in seconds since epoch
+
+	// Validate "nbf" claim
+	if (payload.nbf && payload.nbf > now)
+    throw new InactiveTokenError();
+
+	// Validate "exp" claim
+	if (!ignoreExpiration && payload.exp < now)
+    throw new ExpiredTokenError();
 
 	return payload;
 }
@@ -246,19 +241,13 @@ function parseBearer(authorization: string | undefined): string {
   if (!authorization.startsWith("Bearer "))
     throw new InvalidBearerFormatError();
 
-  // Split by spaces and filter out empty strings to handle multiple spaces
-  const parts = authorization.split(" ").filter(part => part.length > 0);
-  
-  if (parts.length < 2 || !parts[1])
+  const token = authorization.slice(7).trimStart().split(/\s+/)[0];
+
+  if (!token)
     throw new InvalidBearerFormatError();
 
-  return parts[1];
+  return token;
 
-}
-
-// Generate a random index based on an array length
-function randomPick(array: string[]): number {
-	return Math.floor(Math.random() * array.length);
 }
 
 export { 

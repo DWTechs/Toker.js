@@ -2,16 +2,16 @@
 [![License: MIT](https://img.shields.io/npm/l/@dwtechs/toker.svg?color=brightgreen)](https://opensource.org/licenses/MIT)
 [![npm version](https://badge.fury.io/js/%40dwtechs%2Ftoker.svg)](https://www.npmjs.com/package/@dwtechs/toker)
 [![last version release date](https://img.shields.io/github/release-date/DWTechs/Toker.js)](https://www.npmjs.com/package/@dwtechs/toker)
-![Jest:coverage](https://img.shields.io/badge/Jest:coverage-93%25-brightgreen.svg)
+![Jest:coverage](https://img.shields.io/badge/Jest:coverage-95%25-brightgreen.svg)
 
 - [Synopsis](#synopsis)
-- [Support](#support)
 - [Installation](#installation)
 - [Usage](#usage)
 - [API Reference](#api-reference)
 - [Error Handling](#error-handling)
 - [options](#options)
 - [Express.js](#expressjs)
+- [Support](#support)
 - [Contributors](#contributors)
 - [Stack](#stack)
 
@@ -25,15 +25,6 @@
 - 🧪 Thoroughly tested
 - 🚚 Shipped as EcmaScrypt module
 - 📝 Written in Typescript
-
-
-## Support
-
-- Node.js: 22
-
-This is the oldest targeted versions.  
-The library uses node:crypto.  
-
 
 ## Installation
 
@@ -49,7 +40,7 @@ Example of use with Express.js using ES6 module format
 
 ```javascript
 
-import { compare, randomPwd, encrypt, sign, verify } from "@dwtechs/toker";
+import { sign, verify, parseBearer } from "@dwtechs/toker";
 
 const { ACCESS_TOKEN_DURATION, REFRESH_TOKEN_DURATION, TOKEN_SECRET } = process.env;
 
@@ -123,11 +114,11 @@ type Payload = {
 
 ```javascript
 
-// Default values
-const header {
+// JWT header default values
+const header = {
   alg: "HS256", // HMAC using SHA-256 hash algorithm
-  typ: "JWT", // JSON Web Token
-  kid: 0, // Random key ID
+  typ: "JWT",   // JSON Web Token
+  kid: number,  // Random key index, selected per call via crypto.randomInt()
 };
 
 /**
@@ -141,13 +132,13 @@ const header {
  * @throws {InvalidIssuerError} Throws when `iss` is not a string or a number - HTTP 400
  * @throws {InvalidSecretsError} Throws when `b64Keys` is not an array or is empty - HTTP 500
  * @throws {InvalidDurationError} Throws when `duration` is not a positive number - HTTP 400
- * @throws {SecretDecodingError} Throws when the secret cannot be decoded from base64 - HTTP 500
+ * @throws {InvalidBase64Secret} Throws when the secret cannot be decoded from base64 - HTTP 500
  * 
  * // Examples that throw specific errors:
  * sign(null, 3600, "access", secrets); // Throws InvalidIssuerError
  * sign("user123", 3600, "access", []); // Throws InvalidSecretsError
  * sign("user123", -1, "access", secrets); // Throws InvalidDurationError
- * sign("user123", 3600, "access", ["invalid-base64!"]); // Throws SecretDecodingError
+ * sign("user123", 3600, "access", ["invalid-base64!"]); // Throws InvalidBase64Secret
  * ```
  */
 function sign( iss: number | string, 
@@ -165,18 +156,18 @@ function sign( iss: number | string,
  * @returns {Payload} The decoded payload of the JWT token.
  * @throws {InvalidTokenError} Throws when the token is malformed, has invalid structure, algorithm, or type - HTTP 401
  * @throws {InvalidSecretsError} Throws when b64Keys is not an array or is empty - HTTP 500
- * @throws {TokenNotActiveError} Throws when the token cannot be used yet (nbf claim) - HTTP 401
- * @throws {TokenExpiredError} Throws when the token has expired (exp claim) - HTTP 401
- * @throws {SecretDecodingError} Throws when the secret is not valid base64 encoded - HTTP 500
+ * @throws {InactiveTokenError} Throws when the token cannot be used yet (nbf claim) - HTTP 401
+ * @throws {ExpiredTokenError} Throws when the token has expired (exp claim) - HTTP 401
+ * @throws {InvalidBase64Secret} Throws when the secret is not valid base64 encoded - HTTP 500
  * @throws {InvalidSignatureError} Throws when the token signature is invalid - HTTP 401
  * 
  * // Examples that throw specific errors:
  * verify("invalid.token", secrets); // Throws InvalidTokenError
  * verify(validToken, []); // Throws InvalidSecretsError
- * verify(expiredToken, secrets); // Throws TokenExpiredError
- * verify(futureToken, secrets); // Throws TokenNotActiveError
+ * verify(expiredToken, secrets); // Throws ExpiredTokenError
+ * verify(futureToken, secrets); // Throws InactiveTokenError
  * verify(tamperedToken, secrets); // Throws InvalidSignatureError
- * verify(validToken, ["invalid-base64!"]); // Throws SecretDecodingError
+ * verify(validToken, ["invalid-base64!"]); // Throws InvalidBase64Secret
  * ```
  */
 function verify( token: string, 
@@ -198,7 +189,7 @@ function verify( token: string,
  * 
  * @example
  * ```typescript
- * import { parseBearer, MissingAuthorizationError, InvalidBearerFormatError } from "@dwtechs/passken";
+ * import { parseBearer, MissingAuthorizationError, InvalidBearerFormatError } from "@dwtechs/toker";
  * 
  * // Valid Bearer tokens
  * const validHeader = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
@@ -240,14 +231,14 @@ All error classes share these properties:
 ### Using Error Handling
 
 ```typescript
-import { sign, verify, parseBearer, TokenExpiredError, InvalidSignatureError } from "@dwtechs/passken";
+import { sign, verify, parseBearer, ExpiredTokenError, InvalidSignatureError } from "@dwtechs/toker";
 
 try {
   // Attempt to verify a token
   const payload = verify(token, secrets);
   // Token is valid, proceed with the payload
 } catch (error) {
-  if (error instanceof TokenExpiredError) {
+  if (error instanceof ExpiredTokenError) {
     // Handle expired token (e.g., prompt for reauthentication)
     console.log('Your session has expired. Please log in again.');
     console.log(`Status code: ${error.statusCode}`); // 401
@@ -282,12 +273,16 @@ try {
 You can use Toker directly as Express.js middlewares using [@dwtechs/toker-express library](https://www.npmjs.com/package/@dwtechs/toker-express).
 This way you do not have to write express controllers yourself to use **Toker**.
 
+## Support
+
+| Environment | Version |
+| :---------- | :-----: |
+| Node.js     |  >= 22  |
 
 ## Contributors
 
 **Toker.js** is still in development and we would be glad to get all the help you can provide.
 To contribute please read **[contributor.md](https://github.com/DWTechs/Toker.js/blob/main/contributor.md)** for detailed installation guide.
-
 
 ## Stack
 

@@ -11,8 +11,8 @@ const TOKER_PREFIX = "Toker: ";
  * Chains the current error message with the underlying error message
  * @param err The underlying error that caused this error
  */
-function chainMessage(message: string, err: Error): string {
-  return `${message} - caused by: ${err.message}`;
+function chainMessage(message: string, err: unknown): string {
+  return `${message} - caused by: ${err instanceof Error ? err.message : String(err)}`;
 }
 
 /**
@@ -22,7 +22,7 @@ export abstract class TokerError extends Error {
   abstract readonly code: string;
   abstract readonly statusCode: number;
   
-  constructor(message: string, causedBy?: Error) {
+  constructor(message: string, causedBy?: unknown) {
     super(causedBy ? chainMessage(message, causedBy) : message);
     this.name = `${TOKER_PREFIX}${this.constructor.name}`;
     
@@ -100,7 +100,7 @@ export class InvalidTokenError extends TokerError {
   readonly code = "INVALID_TOKEN";
   readonly statusCode = 401;
 
-  constructor(causedBy?: Error) {
+  constructor(causedBy?: unknown) {
     super(`${TOKER_PREFIX}Invalid or malformed JWT token`, causedBy);
   }
 }
@@ -161,7 +161,7 @@ export class InvalidSignatureError extends TokerError {
   readonly code = "INVALID_SIGNATURE";
   readonly statusCode = 401;
 
-  constructor(causedBy?: Error) {
+  constructor(causedBy?: unknown) {
     super(`${TOKER_PREFIX}JWT token signature is invalid`, causedBy);
   }
 }
@@ -219,7 +219,7 @@ export class InvalidSecretsError extends TokerError {
   readonly code = "INVALID_SECRETS";
   readonly statusCode = 500;
 
-  constructor(causedBy?: Error) {
+  constructor(causedBy?: unknown) {
     super(`${TOKER_PREFIX}b64Keys must be an array`, causedBy);
   }
 
@@ -243,7 +243,7 @@ export class InvalidDurationError extends TokerError {
   readonly code = "INVALID_DURATION";
   readonly statusCode = 400;
 
-  constructor(causedBy?: Error) {
+  constructor(causedBy?: unknown) {
     super(`${TOKER_PREFIX}duration must be a positive number`, causedBy);
   }
 
@@ -267,7 +267,7 @@ export class InvalidBase64Secret extends TokerError {
   readonly code = "INVALID_BASE64_SECRET";
   readonly statusCode = 500;
 
-  constructor(causedBy?: Error) {
+  constructor(causedBy?: unknown) {
     super(`${TOKER_PREFIX}could not decode the base64 secret`, causedBy);
   }
 }

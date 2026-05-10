@@ -1,10 +1,9 @@
-import { sign, InvalidIssuerError, InvalidSecretsError, InvalidDurationError } from "../dist/toker.js";
+import { sign, InvalidIssuerError, InvalidSecretsError, InvalidDurationError, InvalidBase64Secret } from "../dist/toker.js";
 import { rndB64Secret, b64Encode } from "@dwtechs/hashitaka";
 import { isBase64 } from "@dwtechs/checkard";
 
 describe("encodeBase64", () => {
 	const secrets = [rndB64Secret(), b64Encode("a-string-secret-at-least-256-bits-long", true)];
-  console.log("secrets", secrets);
 
 	test("generates a token string with valid inputs", () => {
 		const token = sign("user123", 3600, "access", secrets); // Assuming duration is in seconds
@@ -23,7 +22,6 @@ describe("encodeBase64", () => {
 		const currentTime = Math.floor(Date.now() / 1000);
 		const duration = 3600; // 1 hour
 		const token = sign("user123", duration, "access", secrets);
-    console.log("token", token);
 		const payload = JSON.parse(
 			Buffer.from(token.split(".")[1], "base64").toString(),
 		);
@@ -68,11 +66,16 @@ describe("encodeBase64", () => {
 		expect(() => sign("user123", 3600, "access", [])).toThrow(InvalidSecretsError);
 		// Negative duration
 		expect(() => sign("user123", -3600, "access", secrets)).toThrow(InvalidDurationError);
-		// No issuer
+		// Empty string issuer
 		expect(() => sign("", 3600, "access", secrets)).toThrow(InvalidIssuerError);
-		// Invalid base64 secret (simulate by passing a non-base64 string)
-		const badSecrets = [""];
-		expect(() => sign("user123", 3600, "access", badSecrets)).toThrow(Error);
+		// Null issuer
+		expect(() => sign(null, 3600, "access", secrets)).toThrow(InvalidIssuerError);
+		// Undefined issuer
+		expect(() => sign(undefined, 3600, "access", secrets)).toThrow(InvalidIssuerError);
+		// Boolean issuer
+		expect(() => sign(true, 3600, "access", secrets)).toThrow(InvalidIssuerError);
+		// Invalid base64 secret
+		expect(() => sign("user123", 3600, "access", [""])).toThrow(InvalidBase64Secret);
 	});
 
 	test("throws InvalidSecretsError with proper error concatenation", () => {
@@ -88,7 +91,20 @@ describe("encodeBase64", () => {
 			// Note: Error concatenation works when underlying Checkard errors are thrown
 			// The concatenation pattern follows Hashitaka style: "message - caused by: underlying.message"
 		}
-	});	test("ensures the signature is Base64 URL-safe encoded", () => {
+	});	test("uses 15-minute minimum expiry when duration is <= 60 seconds", () => {
+		const currentTime = Math.floor(Date.now() / 1000);
+		const token = sign("user123", 30, "access", secrets);
+		const payload = JSON.parse(Buffer.from(token.split(".")[1], "base64url").toString());
+		expect(payload.exp - currentTime).toBeCloseTo(60 * 15, -1);
+	});
+
+	test("defaults type to 'access' for unrecognised type values", () => {
+		const token = sign("user123", 3600, "unknown", secrets);
+		const payload = JSON.parse(Buffer.from(token.split(".")[1], "base64url").toString());
+		expect(payload.typ).toBe("access");
+	});
+
+	test("ensures the signature is Base64 URL-safe encoded", () => {
 		const token = sign("user123", 3600, "access", secrets);
 		const signature = token.split(".")[2];
 		expect(isBase64(signature, true)).toBe(true);

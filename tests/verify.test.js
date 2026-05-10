@@ -1,4 +1,4 @@
-import { verify, sign, InvalidTokenError, InactiveTokenError, ExpiredTokenError, InvalidSignatureError } from "../dist/toker.js";
+import { verify, sign, InvalidTokenError, InactiveTokenError, ExpiredTokenError, InvalidSignatureError, InvalidSecretsError, InvalidBase64Secret } from "../dist/toker.js";
 import { HashLengthMismatchError } from "@dwtechs/hashitaka";
 // Mock data
 const expiredToken = 
@@ -21,11 +21,43 @@ const otherB64Secrets = [
 const validToken = sign("user123", 3600, "access", b64Secrets);
 const invalidTokenSecrets = sign("user123", 3600, "access", otherB64Secrets);
 
-function wait(duration = 1000) {
-	return new Promise((resolve) => setTimeout(resolve, duration));
+// Builds a token with a custom header for testing specific header fields
+function makeToken(kid, payload = { iss: "test", iat: 1, nbf: 1, exp: 9999999999, typ: "access" }) {
+	const header = { alg: "HS256", typ: "JWT", kid };
+	const b64Header = Buffer.from(JSON.stringify(header)).toString("base64url");
+	const b64Payload = Buffer.from(JSON.stringify(payload)).toString("base64url");
+	return `${b64Header}.${b64Payload}.fakesignature`;
 }
 
 describe("verify", () => {
+
+	it("should throw InvalidSecretsError for empty secrets array", () => {
+		expect(() => { verify(validToken, []) }).toThrow(InvalidSecretsError);
+	});
+
+	it("should throw InvalidSecretsError when secrets is not an array", () => {
+		expect(() => { verify(validToken, "not-an-array") }).toThrow(InvalidSecretsError);
+	});
+
+	it("should throw InvalidTokenError for kid out of bounds", () => {
+		const token = makeToken(999); // b64Secrets only has 2 entries
+		expect(() => { verify(token, b64Secrets, true) }).toThrow(InvalidTokenError);
+	});
+
+	it("should throw InvalidTokenError for kid as a string", () => {
+		const token = makeToken("0");
+		expect(() => { verify(token, b64Secrets, true) }).toThrow(InvalidTokenError);
+	});
+
+	it("should throw InvalidTokenError for kid as a negative number", () => {
+		const token = makeToken(-1);
+		expect(() => { verify(token, b64Secrets, true) }).toThrow(InvalidTokenError);
+	});
+
+	it("should throw InvalidBase64Secret when the key at the kid index is not valid base64", () => {
+		// TokenWithBadSecret has kid=0; passing an invalid base64 key at index 0
+		expect(() => { verify(TokenWithBadSecret, ["!!!not-valid-base64!!!"], true) }).toThrow(InvalidBase64Secret);
+	});
 
 	it("should throw error for a token with invalid segments", () => {
 		expect(() => { verify("invalid.token", b64Secrets)}).toThrow(InvalidTokenError);
@@ -60,13 +92,11 @@ describe("verify", () => {
 		expect(() => {verify(TokenWithBadSecret, b64Secrets, true)}).toThrow(InvalidSignatureError);
 	});
 
-	it("should throw InvalidSignatureError when secrets don't match", async () => {
-		await wait(); // Wait to avoid nbf error
+	it("should throw InvalidSignatureError when secrets don't match", () => {
 		expect(() => {verify(invalidTokenSecrets, b64Secrets, true)}).toThrow(InvalidSignatureError);
 	});
 
-	it("should throw error when signature does not match (wrong secret)", async () => {
-		await wait()
+	it("should throw error when signature does not match (wrong secret)", () => {
 		// Use a valid token but verify with a different secret array
 		const wrongSecrets = [
 			'dGhpcy1pcy1ub3QtdGhlLXJpZ2h0LXNlY3JldA',
@@ -98,8 +128,7 @@ describe("verify", () => {
 		expect(result).toBeInstanceOf(Object);
 	});
 
-	it("should return the decoded token for a valid token", async () => {
-		await wait(); // Wait to not throw nbf error
+	it("should return the decoded token for a valid token", () => {
 		const result = verify(validToken, b64Secrets);
 		expect(result).toBeInstanceOf(Object);
 	});
