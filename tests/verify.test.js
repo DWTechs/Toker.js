@@ -198,4 +198,56 @@ describe("verify", () => {
 		const tokenNbfNow = `${b64Header}.${b64Payload}.${sig}`;
 		expect(() => { verify(tokenNbfNow, b64Secrets) }).not.toThrow();
 	});
+
+	// Security: exp claim validation
+	it("should throw InvalidTokenError when exp is null (would silently pass without validation)", () => {
+		const kid = 0;
+		const secret = b64Decode(b64Secrets[kid], true);
+		const now = Math.floor(Date.now() / 1000);
+		const hdr = { alg: "HS256", typ: "JWT", kid };
+		const pl = { iss: "user123", iat: now, nbf: now, exp: null, typ: "access" };
+		const b64Header = b64Encode(JSON.stringify(hdr), true);
+		const b64Payload = b64Encode(JSON.stringify(pl), true);
+		const sig = hash(`${b64Header}.${b64Payload}`, secret);
+		expect(() => { verify(`${b64Header}.${b64Payload}.${sig}`, b64Secrets) }).toThrow(InvalidTokenError);
+	});
+
+	it("should throw InvalidTokenError when exp is a string (crafted payload)", () => {
+		const kid = 0;
+		const secret = b64Decode(b64Secrets[kid], true);
+		const now = Math.floor(Date.now() / 1000);
+		const hdr = { alg: "HS256", typ: "JWT", kid };
+		const pl = { iss: "user123", iat: now, nbf: now, exp: "never", typ: "access" };
+		const b64Header = b64Encode(JSON.stringify(hdr), true);
+		const b64Payload = b64Encode(JSON.stringify(pl), true);
+		const sig = hash(`${b64Header}.${b64Payload}`, secret);
+		expect(() => { verify(`${b64Header}.${b64Payload}.${sig}`, b64Secrets) }).toThrow(InvalidTokenError);
+	});
+
+	it("should throw InvalidTokenError when exp is Infinity", () => {
+		const kid = 0;
+		const secret = b64Decode(b64Secrets[kid], true);
+		const now = Math.floor(Date.now() / 1000);
+		const hdr = { alg: "HS256", typ: "JWT", kid };
+		// JSON.stringify turns Infinity to null, so use a workaround
+		const rawPayload = `{"iss":"user123","iat":${now},"nbf":${now},"exp":1e309,"typ":"access"}`;
+		const b64Header = b64Encode(JSON.stringify(hdr), true);
+		const b64Payload = b64Encode(rawPayload, true);
+		const sig = hash(`${b64Header}.${b64Payload}`, secret);
+		expect(() => { verify(`${b64Header}.${b64Payload}.${sig}`, b64Secrets) }).toThrow(InvalidTokenError);
+	});
+
+	// Security: kid integer check
+	it("should throw InvalidTokenError when kid is a float (e.g. 0.5)", () => {
+		const kid = 0;
+		const secret = b64Decode(b64Secrets[kid], true);
+		const now = Math.floor(Date.now() / 1000);
+		const hdr = { alg: "HS256", typ: "JWT", kid: 0.5 };
+		const pl = { iss: "user123", iat: now, nbf: now, exp: now + 3600, typ: "access" };
+		const b64Header = b64Encode(JSON.stringify(hdr), true);
+		const b64Payload = b64Encode(JSON.stringify(pl), true);
+		const sig = hash(`${b64Header}.${b64Payload}`, secret);
+		expect(() => { verify(`${b64Header}.${b64Payload}.${sig}`, b64Secrets) }).toThrow(InvalidTokenError);
+	});
 });
+

@@ -1,8 +1,8 @@
 import {
 	isNumber,
+	isInteger,
 	isString,
 	isArray,
-	isJson,
 	isPositive,
 } from "@dwtechs/checkard";
 import {
@@ -25,6 +25,8 @@ import {
   InactiveTokenError,
   InvalidSignatureError
 } from "./errors.js";
+
+const WHITESPACE = /\s+/;
 
 /**
  * Signs a JWT (JSON Web Token) with the given parameters.
@@ -134,21 +136,16 @@ function verify(token: string, b64Keys: string[], ignoreExpiration = false): Pay
 		throw new InvalidSecretsError(err);
 	}
 
-	// Decode and parse the header and payload
-	let headerStr: string;
-	let payloadStr: string;
-	
+	// Decode and parse the header and payload in a single pass
+	let header: Header;
+	let payload: Payload;
+
 	try {
-		headerStr = b64Decode(b64Header, true);
-		payloadStr = b64Decode(b64Payload, true);
-		isJson(headerStr, true);
-		isJson(payloadStr, true);
+		header = JSON.parse(b64Decode(b64Header, true)) as Header;
+		payload = JSON.parse(b64Decode(b64Payload, true)) as Payload;
 	} catch (err) {
 		throw new InvalidTokenError(err);
 	}
-	
-	const header = JSON.parse(headerStr);
-	const payload = JSON.parse(payloadStr);
 
 	// Ensure the algorithm in the header is what we expect (HS256)
 	if (header.alg !== "HS256")
@@ -159,7 +156,7 @@ function verify(token: string, b64Keys: string[], ignoreExpiration = false): Pay
     throw new InvalidTokenError();
 
 	// Ensure the kid is a valid non-negative integer within bounds
-	if (!isNumber(header.kid, true) || header.kid < 0 || header.kid >= b64Keys.length)
+	if (!isInteger(header.kid, true) || header.kid < 0 || header.kid >= b64Keys.length)
 		throw new InvalidTokenError();
 
 	const b64Secret = b64Keys[header.kid];
@@ -184,6 +181,10 @@ function verify(token: string, b64Keys: string[], ignoreExpiration = false): Pay
 
   if (!signaturesMatch)
 		throw new InvalidSignatureError();
+
+	// Validate that exp is a finite number before any time-based check
+	if (!Number.isFinite(payload.exp))
+		throw new InvalidTokenError();
 
 	const now = Math.floor(Date.now() / 1000); // Current time in seconds since epoch
 
@@ -241,7 +242,7 @@ function parseBearer(authorization: string | undefined): string {
   if (!authorization.startsWith("Bearer "))
     throw new InvalidBearerFormatError();
 
-  const token = authorization.slice(7).trimStart().split(/\s+/)[0];
+  const token = authorization.slice(7).trimStart().split(WHITESPACE)[0];
 
   if (!token)
     throw new InvalidBearerFormatError();

@@ -15,7 +15,7 @@ export type Payload = {
 export declare abstract class TokerError extends Error {
     abstract readonly code: string;
     abstract readonly statusCode: number;
-    constructor(message: string, causedBy?: Error);
+    constructor(message: string, causedBy?: unknown);
 }
 export declare class MissingAuthorizationError extends TokerError {
     readonly code = "MISSING_AUTHORIZATION";
@@ -30,7 +30,7 @@ export declare class InvalidBearerFormatError extends TokerError {
 export declare class InvalidTokenError extends TokerError {
     readonly code = "INVALID_TOKEN";
     readonly statusCode = 401;
-    constructor(causedBy?: Error);
+    constructor(causedBy?: unknown);
 }
 export declare class ExpiredTokenError extends TokerError {
     readonly code = "EXPIRED_TOKEN";
@@ -45,7 +45,7 @@ export declare class InactiveTokenError extends TokerError {
 export declare class InvalidSignatureError extends TokerError {
     readonly code = "INVALID_SIGNATURE";
     readonly statusCode = 401;
-    constructor(causedBy?: Error);
+    constructor(causedBy?: unknown);
 }
 export declare class InvalidIssuerError extends TokerError {
     readonly code = "INVALID_ISSUER";
@@ -55,17 +55,17 @@ export declare class InvalidIssuerError extends TokerError {
 export declare class InvalidSecretsError extends TokerError {
     readonly code = "INVALID_SECRETS";
     readonly statusCode = 500;
-    constructor(causedBy?: Error);
+    constructor(causedBy?: unknown);
 }
 export declare class InvalidDurationError extends TokerError {
     readonly code = "INVALID_DURATION";
     readonly statusCode = 400;
-    constructor(causedBy?: Error);
+    constructor(causedBy?: unknown);
 }
 export declare class InvalidBase64Secret extends TokerError {
     readonly code = "INVALID_BASE64_SECRET";
     readonly statusCode = 500;
-    constructor(causedBy?: Error);
+    constructor(causedBy?: unknown);
 }
 
 declare function sign(iss: number | string, duration: number, type: Type, b64Keys: string[]): string;
