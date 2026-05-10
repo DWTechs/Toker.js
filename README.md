@@ -23,7 +23,7 @@
 - 📦 Only 2 dependencies to check inputs variables and secure hash creation and comparison
 - 🪶 Very lightweight
 - 🧪 Thoroughly tested
-- 🚚 Shipped as EcmaScrypt module
+- 🚚 Shipped as ES2022 ESM module
 - 📝 Written in Typescript
 
 ## Installation
@@ -36,7 +36,7 @@ $ npm i @dwtechs/toker
 ## Usage
 
 
-Example of use with Express.js using ES6 module format
+Example of use with Express.js using ES2022 module format
 
 ```javascript
 
@@ -291,5 +291,5 @@ To contribute please read **[contributor.md](https://github.com/DWTechs/Toker.js
 | repository      |        [Github](https://github.com/)         |     hosting for software development version control using Git |
 | package manager |     [npm](https://www.npmjs.com/get-npm)     |                                default node.js package manager |
 | language        | [TypeScript](https://www.typescriptlang.org) | static type checking along with the latest ECMAScript features |
-| module bundler  |      [Rollup.js](https://rollupjs.org)       |                        advanced module bundler for ES6 modules |
+| module bundler  |      [Rollup.js](https://rollupjs.org)       |                        advanced module bundler for ES2022 modules |
 | unit testing    |          [Jest](https://jestjs.io/)          |                  delightful testing with a focus on simplicity |
