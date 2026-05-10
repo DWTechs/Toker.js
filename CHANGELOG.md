@@ -1,6 +1,10 @@
-# 0.2.0 (May 09th 2026)
+# 0.2.1 (May 10th 2026)
 
 - security and performance improvements
+
+# 0.2.0 (May 09th 2026)
+
+
 - Now distributed as a native ES2022 ECMAScript module (ESM)
 - Signature is now verified **before** checking `nbf`/`exp` claims, preventing timing-based information leakage on forged tokens
 - Updated `@dwtechs/hashitaka` to 0.4.0
