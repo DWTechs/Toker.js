@@ -1,4 +1,4 @@
-# 0.2.0 (May 10th 2026)
+# 0.2.0 (May 09th 2026)
 
 - Now distributed as a native ES2022 ECMAScript module (ESM)
 ### Security
