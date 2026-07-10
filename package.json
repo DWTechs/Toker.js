@@ -1,6 +1,6 @@
 {
   "name": "@dwtechs/toker",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Open source JWT management library for Node.js to sign, verify and parse bearer safely.",
   "keywords": [
     "jwt",
@@ -28,7 +28,6 @@
   "license": "MIT",
   "author": {
     "name": "Ludovic Cluber",
-    "email": "http://www.lcluber.com/contact",
     "url": "http://www.lcluber.com"
   },
   "scripts": {
@@ -41,10 +40,10 @@
     "dist/"
   ],
     "engines": {
-    "node": ">= 22"
+      "node": ">= 22"
   },
   "dependencies": {
-    "@dwtechs/checkard": "3.6.0",
+    "@dwtechs/checkard": "3.6.1",
     "@dwtechs/hashitaka": "0.4.0"
   },
   "devDependencies": {

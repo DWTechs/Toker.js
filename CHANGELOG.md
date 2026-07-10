@@ -1,3 +1,8 @@
+# 0.2.2 (Jul 09th 2026)
+
+- Updated dependencies :
+  - @dwtechs/checkard to 3.6.1
+
 # 0.2.1 (May 10th 2026)
 
 - `exp` claim is now validated as a finite number before any time-based comparison, preventing crafted payloads (`null`, strings, `Infinity`) from bypassing expiration checks
@@ -10,7 +15,9 @@
 
 - Now distributed as a native ES2022 ECMAScript module (ESM)
 - Signature is now verified **before** checking `nbf`/`exp` claims, preventing timing-based information leakage on forged tokens
-- Updated `@dwtechs/hashitaka` to 0.4.0
+- Updated dependencies :
+  - @dwtechs/hashitaka to 0.4.0
+  - @dwtechs/checkard to 3.6.0
 
 # 0.1.2 (Feb 7th 2026)
 
@@ -18,7 +25,7 @@
 
 # 0.1.1 (Sep 6th 2025)
 
-- Updated dependencies in package.json:
+- Updated dependencies :
   - @dwtechs/checkard to 3.5.1
   - @dwtechs/hashitaka to 0.3.1
 - Improved error messages using Hashitaka and Checkard errors
