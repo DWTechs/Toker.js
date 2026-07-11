@@ -166,4 +166,10 @@ describe("encodeBase64", () => {
 		expect(payload.nbf).toBe(payload.iat);
 	});
 
+	test("chains error message correctly when causedBy is not an Error instance", () => {
+		// Covers the chainMessage() false branch (err instanceof Error === false)
+		const err = new InvalidSecretsError("plain string cause");
+		expect(err.message).toContain("caused by: plain string cause");
+	});
+
 });
